@@ -1,0 +1,104 @@
+{
+  "approvals_before_merge": null,
+  "assignee": {
+    "avatar_url": "https://assets.gitlab-static.net/uploads/-/system/user/avatar/411701/avatar.png",
+    "id": 411701,
+    "name": "Kushal Pandya",
+    "state": "active",
+    "username": "kushalpandya",
+    "web_url": "https://gitlab.com/kushalpandya"
+  },
+  "assignees": [
+    {
+      "avatar_url": "https://assets.gitlab-static.net/uploads/-/system/user/avatar/411701/avatar.png",
+      "id": 411701,
+      "name": "Kushal Pandya",
+      "state": "active",
+      "username": "kushalpandya",
+      "web_url": "https://gitlab.com/kushalpandya"
+    },
+    {
+      "avatar_url": "https://secure.gravatar.com/avatar/6042a9152ada74d9fb6a0cdce895337e?s=80&d=identicon",
+      "id": 3457201,
+      "name": "Tomas Vik",
+      "state": "active",
+      "username": "viktomas",
+      "web_url": "https://gitlab.com/viktomas"
+    }
+  ],
+  "author": {
+    "avatar_url": "/uploads/-/system/user/avatar/2398164/avatar.png",
+    "id": 3457201,
+    "name": "Tomas Vik",
+    "state": "active",
+    "username": "viktomas",
+    "web_url": "https://gitlab.com/viktomas"
+  },
+  "blocking_discussions_resolved": true,
+  "closed_at": null,
+  "closed_by": null,
+  "created_at": "2020-06-04T08:27:29.079Z",
+  "description": "## What does this MR do?\r\n\r\nRemoving unused action `closeAllFiles` and unused mapped actions `stageChange` and `stageAllChanges` in two separate commits.\r\n\r\nI found this dead code when walking through the Web IDE codebase, this change is not related to any feature currently being implemented.\r\n\r\nThis MR is my first GitLab frontend MR and I'd like to see the MR process in action on a small scale.\r\n\r\n## Does this MR meet the acceptance criteria?\r\n\r\n### Conformity\r\n\r\n- [-] [Changelog entry](https://docs.gitlab.com/ee/development/changelog.html) \r\n- [-] [Documentation](https://docs.gitlab.com/ee/development/documentation/workflow.html) ([if required](https://docs.gitlab.com/ee/development/documentation/workflow.html#when-documentation-is-required))\r\n- [x] [Code review guidelines](https://docs.gitlab.com/ee/development/code_review.html)\r\n- [-] [Merge request performance guidelines](https://docs.gitlab.com/ee/development/merge_request_performance_guidelines.html)\r\n- [x] [Style guides](https://gitlab.com/gitlab-org/gitlab-ee/blob/master/doc/development/contributing/style_guides.md)\r\n- [ ] [Database guides](https://docs.gitlab.com/ee/development/README.html#database-guides)\r\n- [ ] [Separation of EE specific content](https://docs.gitlab.com/ee/development/ee_features.html#separation-of-ee-code)\r\n\r\n### Availability and Testing\r\n\r\nI tested locally that closing files, discarding changes and committing changes works (only as a sanity check). I wasn't able to find any usages in the codebase and so I'm not expecting any additional risks.\r\n\r\n<!-- What risks does this change pose? How might it affect the quality/performance of the product?\r\nWhat additional test coverage or changes to tests will be needed?\r\nWill it require cross-browser testing?\r\nSee the test engineering process for further guidelines: https://about.gitlab.com/handbook/engineering/quality/test-engineering/ -->\r\n\r\n<!-- If cross-browser testing is not required, please remove the relevant item, or mark it as not needed: [-] -->\r\n\r\n- [-] [Review and add/update tests for this feature/bug](https://docs.gitlab.com/ee/development/testing_guide/index.html). Consider [all test levels](https://docs.gitlab.com/ee/development/testing_guide/testing_levels.html). See the [Test Planning Process](https://about.gitlab.com/handbook/engineering/quality/test-engineering).\r\n- [-] [Tested in all supported browsers](https://docs.gitlab.com/ee/install/requirements.html#supported-web-browsers)\r\n- [-] Informed Infrastructure department of a default or new setting change, if applicable per [definition of done](https://docs.gitlab.com/ee/development/contributing/merge_request_workflow.html#definition-of-done)\r\n\r\n### Security\r\n\r\nDoes not apply",
+  "discussion_locked": null,
+  "downvotes": 0,
+  "force_remove_source_branch": true,
+  "has_conflicts": false,
+  "id": 60609203,
+  "iid": 33824,
+  "labels": [
+    "Category:Web IDE",
+    "backstage [DEPRECATED]",
+    "devops::create",
+    "group::editor",
+    "workflow::production"
+  ],
+  "merge_commit_sha": "0e8124ce4ebad018fe6744c6e35f32d17ac74f5d",
+  "merge_status": "can_be_merged",
+  "merge_when_pipeline_succeeds": false,
+  "merged_at": null,
+  "milestone": {
+    "created_at": "2020-01-03T12:28:30.160Z",
+    "description": "",
+    "due_date": "2020-06-17",
+    "group_id": 9970,
+    "id": 1112145,
+    "iid": 47,
+    "start_date": "2020-05-18",
+    "state": "active",
+    "title": "13.1",
+    "updated_at": "2020-03-17T17:32:54.882Z",
+    "web_url": "https://gitlab.com/groups/gitlab-org/-/milestones/47"
+  },
+  "project_id": 278964,
+  "reference": "!33824",
+  "references": {
+    "full": "gitlab-org/gitlab!33824",
+    "relative": "!33824",
+    "short": "!33824"
+  },
+  "sha": "78f72fe3f52f353b3957fa24bc27bcd88ce586bf",
+  "should_remove_source_branch": null,
+  "source_branch": "web-ide-remove-dead-code",
+  "source_project_id": 278964,
+  "squash": true,
+  "squash_commit_sha": null,
+  "state": "opened",
+  "target_branch": "master",
+  "target_project_id": 278964,
+  "task_completion_status": {
+    "completed_count": 2,
+    "count": 4
+  },
+  "time_stats": {
+    "human_time_estimate": null,
+    "human_total_time_spent": null,
+    "time_estimate": 0,
+    "total_time_spent": 0
+  },
+  "title": "Web IDE - remove unused actions (mappings)",
+  "updated_at": "2020-06-22T07:52:03.398Z",
+  "upvotes": 0,
+  "user_notes_count": 7,
+  "web_url": "https://gitlab.com/gitlab-org/gitlab/-/merge_requests/33824",
+  "work_in_progress": false
+}

@@ -1,0 +1,21 @@
+{
+  "compilerOptions": {
+    "module": "commonjs",
+    "target": "ES2019",
+    "outDir": "out",
+    // we need to include dom library for msw to work, see https://github.com/mswjs/msw/issues/408
+    "lib": ["ES2019", "dom"],
+    "allowJs": true,
+    "resolveJsonModule": true,
+    "esModuleInterop": true,
+    "skipLibCheck": true,
+    "sourceMap": true,
+    "strict": true,
+    // isolated modules are required when using esbuild for packaging
+    "isolatedModules": true,
+    // TODO migrate catching to the unknown type
+    "useUnknownInCatchVariables": false
+  },
+  "exclude": ["src/webview"],
+  "include": ["src/**/*", "test/**/*"]
+}

@@ -1,0 +1,34 @@
+{
+  "projects": {
+    "nodes": [
+      {
+        "id": "gid://gitlab/Project/278964",
+        "name": "GitLab",
+        "fullPath": "gitlab-org/gitlab",
+        "httpUrlToRepo": "https://test.gitlab.com/gitlab-org/gitlab.git",
+        "sshUrlToRepo": "git@test.gitlab.com:gitlab-org/gitlab.git",
+        "group": {
+          "id": "gid://gitlab/Group/9970"
+        },
+        "description": "The Gitlab Project",
+        "repository": {
+          "empty": false
+        }
+      },
+      {
+        "id": "gid://gitlab/Project/9999",
+        "name": "Empty project",
+        "fullPath": "gitlab-org/empty",
+        "httpUrlToRepo": "https://test.gitlab.com/gitlab-org/empty.git",
+        "sshUrlToRepo": "git@test.gitlab.com:gitlab-org/empty.git",
+        "group": {
+          "id": "gid://gitlab/Group/9999"
+        },
+        "description": "empty project",
+        "repository": {
+          "empty": true
+        }
+      }
+    ]
+  }
+}

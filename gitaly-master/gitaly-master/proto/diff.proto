@@ -1,0 +1,367 @@
+syntax = "proto3";
+
+package gitaly;
+
+import "lint.proto";
+import "shared.proto";
+
+option go_package = "gitlab.com/gitlab-org/gitaly/v15/proto/go/gitalypb";
+
+// DiffService is a service which provides RPCs to inspect differences
+// introduced between a set of commits.
+service DiffService {
+
+  // Returns stream of CommitDiffResponse with patches chunked over messages
+  rpc CommitDiff(CommitDiffRequest) returns (stream CommitDiffResponse) {
+    option (op_type) = {
+      op: ACCESSOR
+    };
+  }
+
+  // Return a stream so we can divide the response in chunks of deltas
+  rpc CommitDelta(CommitDeltaRequest) returns (stream CommitDeltaResponse) {
+    option (op_type) = {
+      op: ACCESSOR
+    };
+  }
+
+  // This comment is left unintentionally blank.
+  rpc RawDiff(RawDiffRequest) returns (stream RawDiffResponse) {
+    option (op_type) = {
+      op: ACCESSOR
+    };
+  }
+
+  // This comment is left unintentionally blank.
+  rpc RawPatch(RawPatchRequest) returns (stream RawPatchResponse) {
+    option (op_type) = {
+      op: ACCESSOR
+    };
+  }
+
+  // This comment is left unintentionally blank.
+  rpc DiffStats(DiffStatsRequest) returns (stream DiffStatsResponse) {
+    option (op_type) = {
+      op: ACCESSOR
+    };
+  }
+
+  // Return a list of files changed along with the status of each file
+  rpc FindChangedPaths(FindChangedPathsRequest) returns (stream FindChangedPathsResponse) {
+    option (op_type) = {
+      op: ACCESSOR
+    };
+  }
+
+  // GetPatchID computes a patch ID for a patch. Patch IDs are a unique ID computed by hashing
+  // a patch with some parameters like line numbers ignored. The patch ID can thus be used to compare
+  // whether diffs make the same change. Please refer to git-patch-id(1) for further information.
+  // If the difference between old and new change is empty then this RPC returns an error.
+  rpc GetPatchID(GetPatchIDRequest) returns (GetPatchIDResponse) {
+    option (op_type) = {
+      op: ACCESSOR
+    };
+  }
+}
+
+// This comment is left unintentionally blank.
+message CommitDiffRequest {
+  // This comment is left unintentionally blank.
+  enum DiffMode {
+    // DEFAULT is the standard diff mode and results in a linewise diff for textfiles.
+    DEFAULT = 0; // protolint:disable:this ENUM_FIELD_NAMES_PREFIX ENUM_FIELD_NAMES_ZERO_VALUE_END_WITH
+    // WORDDIFF is a word diff and computes the diff for whitespace separated words instead of for whole lines.
+    WORDDIFF = 1; // protolint:disable:this ENUM_FIELD_NAMES_PREFIX
+  }
+
+  // WhiteSpaceChanges states which whitespace changes we should ignore. These options correlate to
+  // the ones present in git-diff(1).
+  enum WhitespaceChanges {
+    // WHITESPACE_CHANGES_UNSPECIFIED is used to not ignore any whitespace changes. This also defaults
+    // to the value in the deprecated field `ignore_whitespace_change` to stay backward compatible.
+    WHITESPACE_CHANGES_UNSPECIFIED = 0;
+    // WHITESPACE_CHANGES_IGNORE specifies to use the `--ignore-space-change` flag of git-diff(1).
+    // Only changes in amount of whitespace are ignored.
+    WHITESPACE_CHANGES_IGNORE = 1;
+    // WHITESPACE_CHANGES_IGNORE_ALL specifies to use the `--ignore-all-space` flag of git-diff(1).
+    // All whitespace characters are ignored when comparing lines.
+    WHITESPACE_CHANGES_IGNORE_ALL = 2;
+  }
+
+  // This comment is left unintentionally blank.
+  Repository repository = 1 [(target_repository)=true];
+  // This comment is left unintentionally blank.
+  string left_commit_id = 2;
+  // This comment is left unintentionally blank.
+  string right_commit_id = 3;
+  // This field is deprecated, use the `whitespace_changes` field instead.
+  bool ignore_whitespace_change = 4 [deprecated=true];
+  // This comment is left unintentionally blank.
+  repeated bytes paths = 5;
+  // This comment is left unintentionally blank.
+  bool collapse_diffs = 6;
+  // This comment is left unintentionally blank.
+  bool enforce_limits = 7;
+
+  // These limits are only enforced when enforce_limits == true.
+  int32 max_files = 8;
+  // This comment is left unintentionally blank.
+  int32 max_lines = 9;
+  // This comment is left unintentionally blank.
+  int32 max_bytes = 10;
+  // Limitation of a single diff patch,
+  // patches surpassing this limit are pruned by default.
+  // If this is 0 you will get back empty patches.
+  int32 max_patch_bytes = 14;
+
+  // These limits are only enforced if collapse_diffs == true.
+  int32 safe_max_files = 11;
+  // This comment is left unintentionally blank.
+  int32 safe_max_lines = 12;
+  // This comment is left unintentionally blank.
+  int32 safe_max_bytes = 13;
+
+  // DiffMode is the mode used for generating the diff. Please refer to the enum declaration for supported modes.
+  DiffMode diff_mode = 15;
+
+  // Overrides max patch bytes for file extension.
+  // If the file does not have an extension (eg Dockerfile), then the file name is used for matching.
+  // For files with more than on extension (eg file.html.tmpl) only the last extension is matched.
+  map<string, int32> max_patch_bytes_for_file_extension = 16;
+
+  // WhitespaceChanges states which whitespace changes should be included in the diff.
+  // Please refer to the enum declaration for supported modes.
+  WhitespaceChanges whitespace_changes = 17;
+}
+
+// A CommitDiffResponse corresponds to a single changed file in a commit.
+message CommitDiffResponse {
+  reserved 8;
+
+  // This comment is left unintentionally blank.
+  bytes from_path = 1;
+  // This comment is left unintentionally blank.
+  bytes to_path = 2;
+  // Blob ID as returned via `git diff --full-index`
+  string from_id = 3;
+  // This comment is left unintentionally blank.
+  string to_id = 4;
+  // This comment is left unintentionally blank.
+  int32 old_mode = 5;
+  // This comment is left unintentionally blank.
+  int32 new_mode = 6;
+  // This comment is left unintentionally blank.
+  bool binary = 7;
+  // This comment is left unintentionally blank.
+  bytes raw_patch_data = 9;
+  // This comment is left unintentionally blank.
+  bool end_of_patch = 10;
+  // Indicates the diff file at which we overflow according to the limitations sent,
+  // in which case only this attribute will be set.
+  bool overflow_marker = 11;
+  // Indicates the patch surpassed a "safe" limit and was therefore pruned, but
+  // the client may still request the full patch on a separate request.
+  bool collapsed = 12;
+  // Indicates the patch was pruned since it surpassed a hard limit, and can
+  // therefore not be expanded.
+  bool too_large = 13;
+}
+
+// This comment is left unintentionally blank.
+message CommitDeltaRequest {
+  // This comment is left unintentionally blank.
+  Repository repository = 1 [(target_repository)=true];
+  // This comment is left unintentionally blank.
+  string left_commit_id = 2;
+  // This comment is left unintentionally blank.
+  string right_commit_id = 3;
+  // This comment is left unintentionally blank.
+  repeated bytes paths = 4;
+}
+
+// This comment is left unintentionally blank.
+message CommitDelta {
+  // This comment is left unintentionally blank.
+  bytes from_path = 1;
+  // This comment is left unintentionally blank.
+  bytes to_path = 2;
+  // Blob ID as returned via `git diff --full-index`
+  string from_id = 3;
+  // This comment is left unintentionally blank.
+  string to_id = 4;
+  // This comment is left unintentionally blank.
+  int32 old_mode = 5;
+  // This comment is left unintentionally blank.
+  int32 new_mode = 6;
+}
+
+// This comment is left unintentionally blank.
+message CommitDeltaResponse {
+  // This comment is left unintentionally blank.
+  repeated CommitDelta deltas = 1;
+}
+
+// This comment is left unintentionally blank.
+message RawDiffRequest {
+  // This comment is left unintentionally blank.
+  Repository repository = 1 [(target_repository)=true];
+  // This comment is left unintentionally blank.
+  string left_commit_id = 2;
+  // This comment is left unintentionally blank.
+  string right_commit_id = 3;
+}
+
+// This comment is left unintentionally blank.
+message RawDiffResponse {
+  // This comment is left unintentionally blank.
+  bytes data = 1;
+}
+
+// This comment is left unintentionally blank.
+message RawPatchRequest {
+  // This comment is left unintentionally blank.
+  Repository repository = 1 [(target_repository)=true];
+  // This comment is left unintentionally blank.
+  string left_commit_id = 2;
+  // This comment is left unintentionally blank.
+  string right_commit_id = 3;
+}
+
+// This comment is left unintentionally blank.
+message RawPatchResponse {
+  // This comment is left unintentionally blank.
+  bytes data = 1;
+}
+
+// This comment is left unintentionally blank.
+message DiffStatsRequest {
+  // This comment is left unintentionally blank.
+  Repository repository = 1 [(target_repository)=true];
+  // This comment is left unintentionally blank.
+  string left_commit_id = 2;
+  // This comment is left unintentionally blank.
+  string right_commit_id = 3;
+}
+
+// This comment is left unintentionally blank.
+message DiffStats {
+  // This comment is left unintentionally blank.
+  bytes path = 1;
+  // This comment is left unintentionally blank.
+  int32 additions = 2;
+  // This comment is left unintentionally blank.
+  int32 deletions = 3;
+  // This comment is left unintentionally blank.
+  bytes old_path = 4;
+}
+
+// This comment is left unintentionally blank.
+message DiffStatsResponse {
+  // This comment is left unintentionally blank.
+  repeated DiffStats stats = 1;
+}
+
+// Given a list of commits, return the files changed. Each commit is compared
+// to its parent. Merge commits will show files which are different to all of
+// its parents.
+message FindChangedPathsRequest {
+  // Request is a single request to pass to git diff-tree.
+  message Request {
+    // TreeRequest compares two trees.
+    message TreeRequest {
+      // left_tree_revision is the revision of the left tree to compare. Accepts any revision that
+      // peels to a tree object.
+      string left_tree_revision = 1;
+      // right_tree_revision is the revision of the right tree to compare. Accepts any revision that
+      // peels to a tree object.
+      string right_tree_revision = 2;
+    }
+
+    // CommitRequest compares a commit to its parents (or some other commits.)
+    message CommitRequest {
+      // commit_revision is the revision of the commit that should be compared. If no `parent_commit_revisions`
+      // are given, then the commit will be compared against its parents. The revision needs to peel to a
+      // commit object.
+      string commit_revision = 1;
+      // parent_commit_revisions are the revisions of commits to treat as the commit's parents. This is an
+      // optional field: if not specified, the actual parents of the commit referred to by `commit_revision`
+      // are used.
+      repeated string parent_commit_revisions = 2;
+    }
+
+    oneof type {
+      // tree_request is a request comparing two trees with each other.
+      TreeRequest tree_request = 1;
+      // commit_request is a request comparing one or more commits with each other.
+      CommitRequest commit_request = 2;
+    }
+  }
+
+  // This comment is left unintentionally blank.
+  Repository repository = 1 [(target_repository)=true];
+  // commits is the list of commits to compare to their parents. This field is deprecated. To adapt to the new calling
+  // convention you can create one `CommitRequest` per commit, where each `CommitRequest` has only the `commit_revision`
+  // field.
+  repeated string commits = 2 [deprecated=true];
+  // requests specifies the requests of what to compare.
+  repeated Request requests = 3;
+}
+
+// Returns a list of files that have been changed in the commits given
+message FindChangedPathsResponse {
+  // This comment is left unintentionally blank.
+  repeated ChangedPaths paths = 1;
+}
+
+// Includes the path of the file, and the status of the change
+message ChangedPaths {
+  // This comment is left unintentionally blank.
+  enum Status {
+    // This comment is left unintentionally blank.
+    ADDED = 0; // protolint:disable:this ENUM_FIELD_NAMES_PREFIX ENUM_FIELD_NAMES_ZERO_VALUE_END_WITH
+    // This comment is left unintentionally blank.
+    MODIFIED = 1; // protolint:disable:this ENUM_FIELD_NAMES_PREFIX
+    // This comment is left unintentionally blank.
+    DELETED = 2; // protolint:disable:this ENUM_FIELD_NAMES_PREFIX
+    // This comment is left unintentionally blank.
+    TYPE_CHANGE = 3; // protolint:disable:this ENUM_FIELD_NAMES_PREFIX
+    // This comment is left unintentionally blank.
+    COPIED = 4; // protolint:disable:this ENUM_FIELD_NAMES_PREFIX
+  }
+
+  // This comment is left unintentionally blank.
+  bytes path = 1;
+  // This comment is left unintentionally blank.
+  Status status = 2;
+  // old_mode is the mode of the changed path previous to the change. May be one of the following values:
+  //
+  //   - 0o000000 if the path does not exist.
+  //   - 0o100644 if the path refers to a normal file.
+  //   - 0o100755 if the path refers to an executable file.
+  //   - 0o040000 if the path refers to a tree entry.
+  //   - 0o160000 if the path refers to a submodule.
+  int32 old_mode = 3;
+  // new_mode is the mode of the changed path after the change. Please refer to `old_mode` for a list of potential values.
+  int32 new_mode = 4;
+}
+
+// GetPatchIDRequest is a request for the GetPatchID RPC.
+message GetPatchIDRequest {
+  // Repository is the repository the patch ID shall be computed in.
+  Repository repository = 1 [(target_repository)=true];
+  // OldRevision is the old revision that shall be used to compute the patch
+  // from that will then be passed to git-patch-id(1). Accepts revisions as
+  // specified in gitrevisions(5).
+  bytes old_revision = 2;
+  // newRevision is the new revision that shall be used to compute the patch
+  // from that will then be passed to git-patch-id(1). Accepts revisions as
+  // specified in gitrevisions(5).
+  bytes new_revision = 3;
+}
+
+// GetPatchIDResponse is a response for the GetPatchID RPC.
+message GetPatchIDResponse {
+  // PatchId is the patch ID that was generated by hashing the diff of the
+  // given old and new revision.
+  string patch_id = 1;
+}

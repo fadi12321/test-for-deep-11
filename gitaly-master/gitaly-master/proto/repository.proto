@@ -1,0 +1,1217 @@
+syntax = "proto3";
+
+package gitaly;
+
+import "lint.proto";
+import "shared.proto";
+
+option go_package = "gitlab.com/gitlab-org/gitaly/v15/proto/go/gitalypb";
+
+// RepositoryService is a service providing RPCs accessing repositories as a whole.
+service RepositoryService {
+
+  // This comment is left unintentionally blank.
+  rpc RepositoryExists(RepositoryExistsRequest) returns (RepositoryExistsResponse) {
+    option (op_type) = {
+      op: ACCESSOR
+    };
+  }
+
+  // RepackIncremental is deprecated in favor of OptimizeRepository.
+  rpc RepackIncremental(RepackIncrementalRequest) returns (RepackIncrementalResponse) {
+    option deprecated = true;
+    option (op_type) = {
+      op: MAINTENANCE
+    };
+  }
+
+  // RepackFull is deprecated in favor of OptimizeRepository.
+  rpc RepackFull(RepackFullRequest) returns (RepackFullResponse) {
+    option deprecated = true;
+    option (op_type) = {
+      op: MAINTENANCE
+    };
+  }
+
+  // MidxRepack is deprecated in favor of OptimizeRepository.
+  rpc MidxRepack(MidxRepackRequest) returns (MidxRepackResponse) {
+    option deprecated = true;
+    option (op_type) = {
+      op: MAINTENANCE
+    };
+  }
+
+  // GarbageCollect is deprecated in favor of OptimizeRepository.
+  rpc GarbageCollect(GarbageCollectRequest) returns (GarbageCollectResponse) {
+    option deprecated = true;
+    option (op_type) = {
+      op: MAINTENANCE
+    };
+  }
+
+  // WriteCommitGraph is deprecated in favor of OptimizeRepository.
+  rpc WriteCommitGraph(WriteCommitGraphRequest) returns (WriteCommitGraphResponse) {
+    option deprecated = true;
+    option (op_type) = {
+      op: MAINTENANCE
+    };
+  }
+
+  // This comment is left unintentionally blank.
+  rpc RepositorySize(RepositorySizeRequest) returns (RepositorySizeResponse) {
+    option (op_type) = {
+      op: ACCESSOR
+    };
+  }
+
+  // ObjectFormat determines the object format that is being used by the repository.
+  rpc ObjectFormat(ObjectFormatRequest) returns (ObjectFormatResponse) {
+    option (op_type) = {
+      op: ACCESSOR
+    };
+  }
+
+  // This comment is left unintentionally blank.
+  rpc ApplyGitattributes(ApplyGitattributesRequest) returns (ApplyGitattributesResponse) {
+    option (op_type) = {
+      op: MUTATOR
+    };
+  }
+
+  // FetchRemote fetches references from a remote repository into the local
+  // repository.
+  rpc FetchRemote(FetchRemoteRequest) returns (FetchRemoteResponse) {
+    option (op_type) = {
+      op: MUTATOR
+    };
+  }
+
+  // This comment is left unintentionally blank.
+  rpc CreateRepository(CreateRepositoryRequest) returns (CreateRepositoryResponse) {
+    option (op_type) = {
+      op: MUTATOR
+    };
+  }
+
+  // This comment is left unintentionally blank.
+  rpc GetArchive(GetArchiveRequest) returns (stream GetArchiveResponse) {
+    option (op_type) = {
+      op: ACCESSOR
+    };
+  }
+
+  // This comment is left unintentionally blank.
+  rpc HasLocalBranches(HasLocalBranchesRequest) returns (HasLocalBranchesResponse) {
+    option (op_type) = {
+      op: ACCESSOR
+    };
+  }
+
+  // FetchSourceBranch fetches a branch from a second (potentially remote)
+  // repository into the given repository.
+  rpc FetchSourceBranch(FetchSourceBranchRequest) returns (FetchSourceBranchResponse) {
+    option (op_type) = {
+      op: MUTATOR
+    };
+  }
+
+  // Fsck checks the repository for consistency via git-fsck(1). This can be used to check for
+  // repository corruption.
+  rpc Fsck(FsckRequest) returns (FsckResponse) {
+    option (op_type) = {
+      op: ACCESSOR
+    };
+  }
+
+  // This comment is left unintentionally blank.
+  rpc WriteRef(WriteRefRequest) returns (WriteRefResponse) {
+    option (op_type) = {
+      op: MUTATOR
+    };
+  }
+
+  // This comment is left unintentionally blank.
+  rpc FindMergeBase(FindMergeBaseRequest) returns (FindMergeBaseResponse) {
+    option (op_type) = {
+      op: ACCESSOR
+    };
+  }
+
+  // This comment is left unintentionally blank.
+  rpc CreateFork(CreateForkRequest) returns (CreateForkResponse) {
+    option (op_type) = {
+      op: MUTATOR
+    };
+  }
+
+  // This comment is left unintentionally blank.
+  rpc CreateRepositoryFromURL(CreateRepositoryFromURLRequest) returns (CreateRepositoryFromURLResponse) {
+    option (op_type) = {
+      op: MUTATOR
+    };
+  }
+
+  // CreateBundle creates a bundle from all refs
+  rpc CreateBundle(CreateBundleRequest) returns (stream CreateBundleResponse) {
+    option (op_type) = {
+      op: ACCESSOR
+    };
+  }
+
+  // CreateBundleFromRefList creates a bundle from a stream of ref patterns.
+  // When the bundle would be empty the FailedPrecondition error code is returned.
+  rpc CreateBundleFromRefList(stream CreateBundleFromRefListRequest) returns (stream CreateBundleFromRefListResponse) {
+    option (op_type) = {
+      op: ACCESSOR
+    };
+  }
+
+  // FetchBundle fetches references from a bundle into the local repository.
+  // Refs will be mirrored to the target repository with the refspec
+  // "+refs/*:refs/*" and refs that do not exist in the bundle will be removed.
+  rpc FetchBundle(stream FetchBundleRequest) returns (FetchBundleResponse) {
+    option (op_type) = {
+      op: MUTATOR
+    };
+  }
+
+  // This comment is left unintentionally blank.
+  rpc CreateRepositoryFromBundle(stream CreateRepositoryFromBundleRequest) returns (CreateRepositoryFromBundleResponse) {
+    option (op_type) = {
+      op: MUTATOR
+    };
+  }
+
+  // GetConfig reads the target repository's gitconfig and streams its contents
+  // back. Returns a NotFound error in case no gitconfig was found.
+  rpc GetConfig(GetConfigRequest) returns (stream GetConfigResponse) {
+    option (op_type) = {
+      op: ACCESSOR
+    };
+  }
+
+  // FindLicense looks in the given repository and attempts to detect all the
+  // details about the license used in the repository.
+  rpc FindLicense(FindLicenseRequest) returns (FindLicenseResponse) {
+    option (op_type) = {
+      op: ACCESSOR
+    };
+  }
+
+  // This comment is left unintentionally blank.
+  rpc GetInfoAttributes(GetInfoAttributesRequest) returns (stream GetInfoAttributesResponse) {
+    option (op_type) = {
+      op: ACCESSOR
+    };
+  }
+
+  // This comment is left unintentionally blank.
+  rpc CalculateChecksum(CalculateChecksumRequest) returns (CalculateChecksumResponse) {
+    option (op_type) = {
+      op: ACCESSOR
+    };
+  }
+
+  // Cleanup is deprecated in favor of OptimizeRepository.
+  rpc Cleanup(CleanupRequest) returns (CleanupResponse) {
+    option deprecated = true;
+    option (op_type) = {
+      op: MAINTENANCE
+    };
+  }
+
+  // This comment is left unintentionally blank.
+  rpc GetSnapshot(GetSnapshotRequest) returns (stream GetSnapshotResponse) {
+    option (op_type) = {
+      op: ACCESSOR
+    };
+  }
+
+  // This comment is left unintentionally blank.
+  rpc CreateRepositoryFromSnapshot(CreateRepositoryFromSnapshotRequest) returns (CreateRepositoryFromSnapshotResponse) {
+    option (op_type) = {
+      op: MUTATOR
+    };
+  }
+
+  // This comment is left unintentionally blank.
+  rpc GetRawChanges(GetRawChangesRequest) returns (stream GetRawChangesResponse) {
+    option (op_type) = {
+      op: ACCESSOR
+    };
+  }
+
+  // This comment is left unintentionally blank.
+  rpc SearchFilesByContent(SearchFilesByContentRequest) returns (stream SearchFilesByContentResponse) {
+    option (op_type) = {
+      op: ACCESSOR
+    };
+  }
+
+  // This comment is left unintentionally blank.
+  rpc SearchFilesByName(SearchFilesByNameRequest) returns (stream SearchFilesByNameResponse) {
+    option (op_type) = {
+      op: ACCESSOR
+    };
+  }
+
+  // RestoreCustomHooks sets the git hooks for a repository. The hooks are sent
+  // in a tar archive containing a `custom_hooks` directory. This directory is
+  // ultimately extracted to the repository.
+  rpc RestoreCustomHooks(stream RestoreCustomHooksRequest) returns (RestoreCustomHooksResponse) {
+    option (op_type) = {
+      op: MUTATOR
+    };
+    option deprecated = true;
+  }
+
+  // SetCustomHooks sets the git hooks for a repository. The hooks are sent in a
+  // tar archive containing a `custom_hooks` directory. This directory is 
+  // ultimately extracted to the repository.
+  rpc SetCustomHooks(stream SetCustomHooksRequest) returns (SetCustomHooksResponse) {
+    option (op_type) = {
+      op: MUTATOR
+    };
+  }
+
+  // BackupCustomHooks fetches the git hooks for a repository. The hooks are
+  // sent in a tar archive containing a `custom_hooks` directory. If no hooks
+  // are present in the repository, the response will have no data.
+  rpc BackupCustomHooks(BackupCustomHooksRequest) returns (stream BackupCustomHooksResponse) {
+    option (op_type) = {
+      op: ACCESSOR
+    };
+    option deprecated = true;
+  }
+
+  // GetCustomHooks fetches the git hooks for a repository. The hooks are sent
+  // in a tar archive containing a `custom_hooks` directory. If no hooks are
+  // present in the repository, the response will have no data.
+  rpc GetCustomHooks(GetCustomHooksRequest) returns (stream GetCustomHooksResponse) {
+    option (op_type) = {
+      op: ACCESSOR
+    };
+  }
+
+  // This comment is left unintentionally blank.
+  rpc GetObjectDirectorySize(GetObjectDirectorySizeRequest) returns (GetObjectDirectorySizeResponse) {
+    option (op_type) = {
+      op: ACCESSOR
+    };
+  }
+
+  // RemoveRepository will move the repository to `+gitaly/tmp/<relative_path>_removed` and
+  // eventually remove it. This ensures that even on networked filesystems the
+  // data is actually removed even if there's someone still handling the data.
+  rpc RemoveRepository(RemoveRepositoryRequest) returns (RemoveRepositoryResponse) {
+    option (op_type) = {
+      op: MUTATOR
+    };
+  }
+
+  // This comment is left unintentionally blank.
+  rpc RenameRepository(RenameRepositoryRequest) returns (RenameRepositoryResponse) {
+    option (op_type) = {
+      op: MUTATOR
+    };
+  }
+
+  // This comment is left unintentionally blank.
+  rpc ReplicateRepository(ReplicateRepositoryRequest) returns (ReplicateRepositoryResponse) {
+    option (op_type)  = {
+      op: MUTATOR
+    };
+  }
+
+  // OptimizeRepository performs all maintenance tasks in a repository to keep
+  // it in an efficient state. It cleans up stale data, repacks objects,
+  // updates auxiliary caches like commit-graphs and packs references. The
+  // optimizations performed are based on heuristics and will adapt to the
+  // repository's size. This RPC call is designed as a black-box such that
+  // Gitaly has complete control of the on-disk state of repositories.
+  rpc OptimizeRepository(OptimizeRepositoryRequest) returns (OptimizeRepositoryResponse) {
+    option (op_type)  = {
+      op: MAINTENANCE
+    };
+  }
+
+  // PruneUnreachableObjects will prune all objects which aren't reachable from
+  // the repository's current set of references. Because pruning can only
+  // happen for objects which aren't packed, you are required to first run
+  // OptimizeRepository to explode any unreachable objects into loose objects.
+  //
+  // Furthermore, this RPC call has a grace period of 30 minutes: any
+  // unreachable loose objects must not have been accessed or modified in the
+  // last 30 minutes. This is a hard requirement to avoid repository corruption.
+  //
+  // To make proper use of this RPC you thus need to call OptimizeRepository,
+  // wait 30 minutes, and then call PruneUnreachableObjects.
+  rpc PruneUnreachableObjects(PruneUnreachableObjectsRequest) returns (PruneUnreachableObjectsResponse) {
+    option (op_type)  = {
+      op: MAINTENANCE
+    };
+  }
+
+  // SetFullPath writes the "gitlab.fullpath" configuration into the
+  // repository's gitconfig. This is mainly to help debugging purposes in case
+  // an admin inspects the repository's gitconfig such that he can easily see
+  // what the repository name is.
+  rpc SetFullPath(SetFullPathRequest) returns (SetFullPathResponse) {
+    option deprecated = true;
+    option (op_type)  = {
+      op: MUTATOR
+    };
+  }
+
+  // FullPath reads the "gitlab.fullpath" configuration from the repository's
+  // gitconfig. Returns an error in case the full path has not been configured.
+  rpc FullPath(FullPathRequest) returns (FullPathResponse) {
+    option deprecated = true;
+    option (op_type) = {
+      op: ACCESSOR
+    };
+  }
+
+  // RemoveAll deletes all repositories on a specified storage.
+  rpc RemoveAll(RemoveAllRequest) returns (RemoveAllResponse) {
+    option (intercepted_method) = true;
+  }
+}
+
+// This comment is left unintentionally blank.
+message RepositoryExistsRequest {
+  // This comment is left unintentionally blank.
+  Repository repository = 1 [(target_repository)=true];
+}
+
+// This comment is left unintentionally blank.
+message RepositoryExistsResponse {
+  // This comment is left unintentionally blank.
+  bool exists = 1;
+}
+
+// This comment is left unintentionally blank.
+message RepackIncrementalRequest {
+  // This comment is left unintentionally blank.
+  Repository repository = 1 [(target_repository)=true];
+}
+
+// This comment is left unintentionally blank.
+message RepackIncrementalResponse {
+}
+
+// This comment is left unintentionally blank.
+message RepackFullRequest {
+  // This comment is left unintentionally blank.
+  Repository repository = 1 [(target_repository)=true];
+  // This comment is left unintentionally blank.
+  bool create_bitmap = 2;
+}
+
+// This comment is left unintentionally blank.
+message RepackFullResponse {
+}
+
+// This comment is left unintentionally blank.
+message MidxRepackRequest {
+  // This comment is left unintentionally blank.
+  Repository repository = 1 [(target_repository)=true];
+}
+
+// This comment is left unintentionally blank.
+message MidxRepackResponse {
+}
+
+// This comment is left unintentionally blank.
+message GarbageCollectRequest {
+  // This comment is left unintentionally blank.
+  Repository repository = 1 [(target_repository)=true];
+  // This comment is left unintentionally blank.
+  bool create_bitmap = 2;
+  // If set to 'true' the 'gc' will be triggered with '--prune=30.minutes.ago' flag.
+  // This will remove dangling objects from the object storage that were not modified in the last 30 minutes.
+  // If 'false' provided the 'gc' will rely on the default expiration period (2 weeks).
+  // The window of 30 minutes exists because of possible concurrent operations running on the same
+  // storage and removal of the objects may cause races and fail concurrent operations.
+  bool prune = 3;
+}
+
+// This comment is left unintentionally blank.
+message GarbageCollectResponse {
+}
+
+// This comment is left unintentionally blank.
+message WriteCommitGraphRequest {
+  // This comment is left unintentionally blank.
+  enum SplitStrategy {
+    // SizeMultiple requires to use '--split --size-multiple=4' strategy to create/update commit graph.
+    // https://git-scm.com/docs/git-commit-graph#Documentation/git-commit-graph.txt-emwriteem
+    // It is a default, there is no need to explicitly set it in the request.
+    SizeMultiple = 0; // protolint:disable:this ENUM_FIELD_NAMES_UPPER_SNAKE_CASE ENUM_FIELD_NAMES_PREFIX ENUM_FIELD_NAMES_ZERO_VALUE_END_WITH
+  }
+
+  // This comment is left unintentionally blank.
+  Repository repository = 1 [(target_repository)=true];
+  // SplitStrategy is a strategy used to create/update commit graph.
+  SplitStrategy splitStrategy = 2; // protolint:disable:this FIELD_NAMES_LOWER_SNAKE_CASE
+}
+
+// This comment is left unintentionally blank.
+message WriteCommitGraphResponse {
+}
+
+// This comment is left unintentionally blank.
+message CleanupRequest {
+  // This comment is left unintentionally blank.
+  Repository repository = 1 [(target_repository)=true];
+}
+
+// This comment is left unintentionally blank.
+message CleanupResponse {
+}
+
+// This comment is left unintentionally blank.
+message RepositorySizeRequest {
+  // This comment is left unintentionally blank.
+  Repository repository = 1 [(target_repository)=true];
+}
+
+// This comment is left unintentionally blank.
+message RepositorySizeResponse {
+  // Repository size in kilobytes
+  int64 size = 1;
+}
+
+// ObjectFormatRequest is a request for the ObjectFormat RPC.
+message ObjectFormatRequest {
+  // Repository is the repository for which to determine the object format.
+  Repository repository = 1 [(target_repository)=true];
+}
+
+// ObjectFormatResponse is a response for the ObjectFormat RPC.
+message ObjectFormatResponse {
+  // Format is the object format that the repository uses.
+  ObjectFormat format = 1;
+}
+
+// This comment is left unintentionally blank.
+message ApplyGitattributesRequest {
+  // This comment is left unintentionally blank.
+  Repository repository = 1 [(target_repository)=true];
+  // This comment is left unintentionally blank.
+  bytes revision = 2;
+}
+
+// This comment is left unintentionally blank.
+message ApplyGitattributesResponse {
+}
+
+// This comment is left unintentionally blank.
+message FetchBundleRequest {
+  // Repository into which the reference shall be fetched.
+  Repository repository = 1 [(target_repository)=true];
+
+  // Data is the bundle file stream.
+  bytes data = 2;
+
+  // UpdateHead will update HEAD if there is a HEAD reference listed in the bundle
+  bool update_head = 3;
+}
+
+// This comment is left unintentionally blank.
+message FetchBundleResponse {
+}
+
+// This comment is left unintentionally blank.
+message FetchRemoteRequest {
+  // This comment is left unintentionally blank.
+  Repository repository = 1 [(target_repository)=true];
+  // force determines if references should be force-updated in case they have
+  // diverged.
+  bool force = 3;
+  // no_tags determines whether tags should be fetched.
+  bool no_tags = 4;
+  // timeout specifies a timeout for the fetch.
+  int32 timeout = 5;
+  // This comment is left unintentionally blank.
+  string ssh_key = 6;
+  // This comment is left unintentionally blank.
+  string known_hosts = 7;
+  reserved 8;
+  // no_prune will the fetch to not prune remote references which do not exist
+  // in the remote repository anymore.
+  bool no_prune = 9;
+  // remote_params specifies the remote repository which should be fetched
+  // from.
+  Remote remote_params = 10;
+  // If check_tags_changed is true, the FetchRemote RPC will check whether any
+  // tags were modified, returning the result in the tags_changed field of
+  // FetchRemoteResponse
+  bool check_tags_changed = 11;
+
+  reserved 2;
+  reserved "remote";
+}
+
+// This comment is left unintentionally blank.
+message FetchRemoteResponse {
+  // If check_tags_changed was set in the FetchRemoteRequest, the FetchRemote
+  // RPC will return false when no tags were changed, and true if tags were
+  // changed or answer cannot be determined.
+  bool tags_changed = 1;
+}
+
+// This comment is left unintentionally blank.
+message CreateRepositoryRequest {
+  // This comment is left unintentionally blank.
+  Repository repository = 1 [(target_repository)=true];
+  // Provide a branch name to set as the default branch of a newly created
+  // repository. Note, this will be treated as the branch name and not a
+  // fully qualified reference.
+  bytes default_branch = 2;
+  // ObjectFormat is the object format the repository should be created with. Note that this is
+  // experimental and should not be used by callers yet. It is mostly intended for internal testing
+  // purposes in Gitaly right now.
+  ObjectFormat object_format = 3;
+}
+
+// This comment is left unintentionally blank.
+message CreateRepositoryResponse {
+}
+
+// This comment is left unintentionally blank.
+message GetArchiveRequest {
+  // This comment is left unintentionally blank.
+  enum Format {
+    // This comment is left unintentionally blank.
+    ZIP = 0; // protolint:disable:this ENUM_FIELD_NAMES_PREFIX ENUM_FIELD_NAMES_ZERO_VALUE_END_WITH
+    // This comment is left unintentionally blank.
+    TAR = 1; // protolint:disable:this ENUM_FIELD_NAMES_PREFIX
+    // This comment is left unintentionally blank.
+    TAR_GZ = 2; // protolint:disable:this ENUM_FIELD_NAMES_PREFIX
+    // This comment is left unintentionally blank.
+    TAR_BZ2 = 3; // protolint:disable:this ENUM_FIELD_NAMES_PREFIX
+  }
+
+  // This comment is left unintentionally blank.
+  Repository repository = 1 [(target_repository)=true];
+  // This comment is left unintentionally blank.
+  string commit_id = 2;
+  // This comment is left unintentionally blank.
+  string prefix = 3;
+  // This comment is left unintentionally blank.
+  Format format = 4;
+  // This comment is left unintentionally blank.
+  bytes path = 5;
+  // This comment is left unintentionally blank.
+  repeated bytes exclude = 6; // protolint:disable:this REPEATED_FIELD_NAMES_PLURALIZED
+  // If `elide_path` is true and `path` refers to a subdirectory, that
+  // subdirectory will be elided from archive entries. For example, if `dir`
+  // contains `README.md`, with `elide_path = false` the corresponding entry
+  // will be `dir/README.md`; with `elide_path = true`, the entry will be
+  // `README.md`. `elide_path` has no effect if `path` refers to the repository
+  // root. `elide_path = true` is not supported if `path` refers to a file.
+  bool elide_path = 7;
+  // This comment is left unintentionally blank.
+  bool include_lfs_blobs = 8;
+}
+
+// This comment is left unintentionally blank.
+message GetArchiveResponse {
+  // This comment is left unintentionally blank.
+  bytes data = 1;
+}
+
+// This comment is left unintentionally blank.
+message HasLocalBranchesRequest {
+  // This comment is left unintentionally blank.
+  Repository repository = 1 [(target_repository)=true];
+}
+
+// This comment is left unintentionally blank.
+message HasLocalBranchesResponse {
+  // This comment is left unintentionally blank.
+  bool value = 1;
+}
+
+// This comment is left unintentionally blank.
+message FetchSourceBranchRequest {
+  // Repository into which the reference shall be fetched. After a successful
+  // call, it should contain the target reference which points to the same
+  // commit as the source repository's source branch.
+  Repository repository = 1 [(target_repository)=true];
+  // Repository from which to fetch the source branch from.
+  Repository source_repository = 2;
+  // Name of the branch in the source repository which should be fetched.
+  bytes source_branch = 3;
+  // Name of the reference which shall be newly created in the target
+  // repository.
+  bytes target_ref = 4;
+}
+
+// This comment is left unintentionally blank.
+message FetchSourceBranchResponse {
+  // True if the source branch was successfully fetched into the target
+  // repository, false if resolving the remote reference or fetching it failed.
+  bool result = 1;
+}
+
+// FsckRequest is a request for the Fsck RPC.
+message FsckRequest {
+  // Repository is the repository that shall be checked for consistency.
+  Repository repository = 1 [(target_repository)=true];
+}
+
+// FsckResponse is a response for the Fsck RPC.
+message FsckResponse {
+  // Error contains both stdout and stderr of git-fsck(1) in case it returned an error.
+  bytes error = 1;
+}
+
+// This comment is left unintentionally blank.
+message WriteRefRequest {
+  // This comment is left unintentionally blank.
+  Repository repository = 1 [(target_repository)=true];
+  // This comment is left unintentionally blank.
+  bytes ref = 2;
+  // This comment is left unintentionally blank.
+  bytes revision = 3;
+  // This comment is left unintentionally blank.
+  bytes old_revision = 4;
+  // This comment is left unintentionally blank.
+  bool force = 5;
+  // This used to be a boolean indicating whether or not to shell out or use
+  // the rugged implementation
+  reserved 6;
+}
+
+// This comment is left unintentionally blank.
+message WriteRefResponse {
+  // This used to contain an error message. Since we're shelling out
+  // all exceptions are wrapped in GRPC errors.
+  reserved 1;
+}
+
+// This comment is left unintentionally blank.
+message FindMergeBaseRequest {
+  // This comment is left unintentionally blank.
+  Repository repository = 1 [(target_repository)=true];
+  // We use a repeated field because rugged supports finding a base
+  // for more than 2 revisions, so if we needed that in the future we don't
+  // need to change the protocol.
+  repeated bytes revisions = 2;
+}
+
+// This comment is left unintentionally blank.
+message FindMergeBaseResponse {
+  // This comment is left unintentionally blank.
+  string base = 1;
+}
+
+// This comment is left unintentionally blank.
+message CreateForkRequest {
+  // This comment is left unintentionally blank.
+  Repository repository = 1 [(target_repository)=true];
+  // This comment is left unintentionally blank.
+  Repository source_repository = 2;
+}
+
+// This comment is left unintentionally blank.
+message CreateForkResponse {
+}
+
+// This comment is left unintentionally blank.
+message CreateRepositoryFromURLRequest {
+  // This comment is left unintentionally blank.
+  Repository repository = 1 [(target_repository)=true];
+  // This comment is left unintentionally blank.
+  string url = 2;
+  // HttpHost is the hostname of the remote repository. Use this when the
+  // URL hostname has already been resolved to an IP address to prevent DNS
+  // rebinding. This is deprecated as we will be using resolved_address
+  // going forward.
+  string http_host = 3 [deprecated=true];
+  // http_authorization_header is the HTTP header which can be added to
+  // the request in order to authenticate against the repository.
+  string http_authorization_header = 4;
+  // Mirror defines whether to clone with `--mirror` flag or `--bare`. The default
+  // value `false` will cause us to use `--bare`, which results in a clone that
+  // contains only branches (`refs/heads/`) and tags (`refs/tags/`) of the remote
+  // repository. If set to `true`, create a complete mirror-clone which maps all
+  // remote references into the local repository.
+  bool mirror = 5;
+  // ResolvedAddress holds the resolved IP address of the remote_url. This is
+  // used to avoid DNS rebinding by mapping the url to the resolved address.
+  // Only IPv4 dotted decimal ("192.0.2.1"), IPv6 ("2001:db8::68"), or IPv4-mapped
+  // IPv6 ("::ffff:192.0.2.1") forms are supported.
+  // Works with HTTP/HTTPS/Git/SSH protocols.
+  // Optional.
+  string resolved_address = 6;
+}
+
+// This comment is left unintentionally blank.
+message CreateRepositoryFromURLResponse {
+}
+
+// This comment is left unintentionally blank.
+message CreateBundleRequest {
+  // This comment is left unintentionally blank.
+  Repository repository = 1 [(target_repository)=true];
+}
+
+// This comment is left unintentionally blank.
+message CreateBundleResponse {
+  // This comment is left unintentionally blank.
+  bytes data = 1;
+}
+
+// This comment is left unintentionally blank.
+message CreateBundleFromRefListRequest {
+  // Repository is the repository that the bundle is created from.
+  Repository repository = 1 [(target_repository)=true];
+
+  // Patterns contains all patterns which shall be bundled. Patterns should be
+  // in the format accepted by git-rev-list(1). Patterns which don't match any
+  // reference will be silently ignored.
+  repeated bytes patterns = 2;
+}
+
+// This comment is left unintentionally blank.
+message CreateBundleFromRefListResponse {
+  // This comment is left unintentionally blank.
+  bytes data = 1;
+}
+
+// GetConfigRequest is a request for the GetConfig RPC.
+message GetConfigRequest {
+  // Repository is the repository from which the configuration should be read
+  // from.
+  Repository repository = 1 [(target_repository)=true];
+}
+
+// GetConfigResponse is a response for the GetConfig RPC.
+message GetConfigResponse {
+  // Data contains contents of the gitconfig.
+  bytes data = 1;
+}
+
+// This comment is left unintentionally blank.
+message  RestoreCustomHooksRequest {
+  // This comment is left unintentionally blank.
+  Repository repository = 1 [(target_repository)=true];
+  // This comment is left unintentionally blank.
+  bytes data = 2;
+}
+
+// This comment is left unintentionally blank.
+message  SetCustomHooksRequest {
+  // This comment is left unintentionally blank.
+  Repository repository = 1 [(target_repository)=true];
+  // This comment is left unintentionally blank.
+  bytes data = 2;
+}
+
+// This comment is left unintentionally blank.
+message RestoreCustomHooksResponse {
+}
+
+// This comment is left unintentionally blank.
+message SetCustomHooksResponse {
+}
+
+// This comment is left unintentionally blank.
+message BackupCustomHooksRequest {
+  // This comment is left unintentionally blank.
+  Repository repository = 1 [(target_repository)=true];
+}
+
+// This comment is left unintentionally blank.
+message GetCustomHooksRequest {
+  // This comment is left unintentionally blank.
+  Repository repository = 1 [(target_repository)=true];
+}
+
+// This comment is left unintentionally blank.
+message BackupCustomHooksResponse {
+  // This comment is left unintentionally blank.
+  bytes data = 1;
+}
+
+// This comment is left unintentionally blank.
+message GetCustomHooksResponse {
+  // This comment is left unintentionally blank.
+  bytes data = 1;
+}
+
+// This comment is left unintentionally blank.
+message CreateRepositoryFromBundleRequest {
+  // Only available on the first message
+  Repository repository = 1 [(target_repository)=true];
+  // This comment is left unintentionally blank.
+  bytes data = 2;
+}
+
+// This comment is left unintentionally blank.
+message CreateRepositoryFromBundleResponse {
+}
+
+// FindLicenseRequest asks to detect the license for the given repository.
+message FindLicenseRequest {
+  // Repository is repository where to detect the license.
+  Repository repository = 1 [(target_repository)=true];
+}
+
+// FindLicenseResponse contains the result of detecting the license used in the repository.
+// If there is nothing that looks like a license file, the empty response is returned.
+// If there is something that looks like a license, but that license can't be found in the
+// list of known licenses, we return a pre-defined response with "Other" license.
+message FindLicenseResponse {
+  // LicenseShortName is the license unique SPDX identifier or a short name.
+  // It is always returned lower-cased.
+  string license_short_name = 1;
+  // LicenseName is the license full name.
+  string license_name = 2;
+  // LicenseUrl is a URL to the license on the internet.
+  string license_url = 3;
+  // LicensePath is a path to the file that contains the text of the license.
+  // When a LICENSE file is found containing the filename of another file,
+  // that filename will be returned, for example "mit.txt".
+  string license_path = 4;
+  // LicenseNickname is a shortened full name for better readability.
+  // It exists only for a small set of licenses and an empty value is returned in most cases.
+  string license_nickname = 5;
+}
+
+// This comment is left unintentionally blank.
+message GetInfoAttributesRequest {
+  // This comment is left unintentionally blank.
+  Repository repository = 1 [(target_repository)=true];
+}
+
+// This comment is left unintentionally blank.
+message GetInfoAttributesResponse {
+  // This comment is left unintentionally blank.
+  bytes attributes = 1;
+}
+
+// This comment is left unintentionally blank.
+message CalculateChecksumRequest {
+  // This comment is left unintentionally blank.
+  Repository repository = 1 [(target_repository)=true];
+}
+
+// This comment is left unintentionally blank.
+message CalculateChecksumResponse {
+  // This comment is left unintentionally blank.
+  string checksum = 1;
+}
+
+// This comment is left unintentionally blank.
+message GetSnapshotRequest {
+  // This comment is left unintentionally blank.
+  Repository repository = 1 [(target_repository)=true];
+}
+
+// This comment is left unintentionally blank.
+message GetSnapshotResponse {
+  // This comment is left unintentionally blank.
+  bytes data = 1;
+}
+
+// This comment is left unintentionally blank.
+message CreateRepositoryFromSnapshotRequest {
+  // This comment is left unintentionally blank.
+  Repository repository = 1 [(target_repository)=true];
+  // This comment is left unintentionally blank.
+  string http_url = 2;
+  // This comment is left unintentionally blank.
+  string http_auth = 3;
+  // HttpHost is the hostname of the remote snapshot. Use this when the
+  // URL hostname has already been resolved to an IP address to prevent DNS
+  // rebinding. This is deprecated as we will be using resolved_address
+  // going forward.
+  string http_host = 4 [deprecated=true];
+  // ResolvedAddress holds the resolved IP address of the remote_url. This is
+  // used to avoid DNS rebinding by mapping the url to the resolved address.
+  // Only IPv4 dotted decimal ("192.0.2.1"), IPv6 ("2001:db8::68"), or IPv4-mapped
+  // IPv6 ("::ffff:192.0.2.1") forms are supported.
+  // Works with HTTP/HTTPS protocols.
+  // Optional.
+  string resolved_address = 5;
+}
+
+// This comment is left unintentionally blank.
+message CreateRepositoryFromSnapshotResponse {
+}
+
+// This comment is left unintentionally blank.
+message GetRawChangesRequest {
+  // This comment is left unintentionally blank.
+  Repository repository = 1 [(target_repository)=true];
+  // This comment is left unintentionally blank.
+  string from_revision = 2;
+  // This comment is left unintentionally blank.
+  string to_revision = 3;
+}
+
+// This comment is left unintentionally blank.
+message GetRawChangesResponse {
+  // This comment is left unintentionally blank.
+  message RawChange {
+    // This comment is left unintentionally blank.
+    enum Operation {
+      // This comment is left unintentionally blank.
+      UNKNOWN = 0; // protolint:disable:this ENUM_FIELD_NAMES_PREFIX ENUM_FIELD_NAMES_ZERO_VALUE_END_WITH
+      // This comment is left unintentionally blank.
+      ADDED = 1; // protolint:disable:this ENUM_FIELD_NAMES_PREFIX
+      // This comment is left unintentionally blank.
+      COPIED = 2; // protolint:disable:this ENUM_FIELD_NAMES_PREFIX
+      // This comment is left unintentionally blank.
+      DELETED = 3; // protolint:disable:this ENUM_FIELD_NAMES_PREFIX
+      // This comment is left unintentionally blank.
+      MODIFIED = 4; // protolint:disable:this ENUM_FIELD_NAMES_PREFIX
+      // This comment is left unintentionally blank.
+      RENAMED = 5; // protolint:disable:this ENUM_FIELD_NAMES_PREFIX
+      // This comment is left unintentionally blank.
+      TYPE_CHANGED = 6; // protolint:disable:this ENUM_FIELD_NAMES_PREFIX
+    }
+
+    // This comment is left unintentionally blank.
+    string blob_id = 1;
+    // This comment is left unintentionally blank.
+    int64 size= 2;
+
+    // This used to be a string that is now represented by the field 9 as byte array.
+    reserved 3;
+    reserved "new_path";
+    // This used to be a string that is now represented by the field 10 as byte array.
+    reserved 4;
+    reserved "old_path";
+
+    // This comment is left unintentionally blank.
+    Operation operation= 5;
+    // This comment is left unintentionally blank.
+    string raw_operation = 6;
+    // This comment is left unintentionally blank.
+    int32 old_mode = 7;
+    // This comment is left unintentionally blank.
+    int32 new_mode = 8;
+
+    // the following fields, 9 and 10, will eventually replace 3 and 4
+    bytes new_path_bytes = 9;
+    // This comment is left unintentionally blank.
+    bytes old_path_bytes = 10;
+  }
+
+  // This comment is left unintentionally blank.
+  repeated RawChange raw_changes = 1;
+}
+
+// This comment is left unintentionally blank.
+message SearchFilesByNameRequest {
+  // This comment is left unintentionally blank.
+  Repository repository = 1 [(target_repository)=true];
+  // This comment is left unintentionally blank.
+  string query = 2;
+  // This comment is left unintentionally blank.
+  bytes ref = 3;
+  // If `filter` is specified and non-empty, it will be parsed as a regular
+  // expression and used to filter the result set before it is transmitted. It is
+  // parsed using Go's `regexp` package, which is closely related to PCRE,
+  // excluding backreferences, atomic/possesive operators, and some other
+  // features. It has a maximum length of 1000 bytes.
+  string filter = 4;
+  // Limit the number of returned files. Gitaly does not enforce a limit by default.
+  // Clients should always set a value for this field. limit = 0 means unlimited files.
+  uint32 limit = 5;
+  // `offset` says to skip that many files before beginning to return files.
+  // offset = 0 means starting to return files from beginning.
+  uint32 offset = 6;
+}
+
+// This comment is left unintentionally blank.
+message SearchFilesByNameResponse {
+  // Files contains the paths of files that have been found to match the query.
+  repeated bytes files = 1;
+}
+
+// This comment is left unintentionally blank.
+message SearchFilesByContentRequest {
+  // This comment is left unintentionally blank.
+  Repository repository = 1 [(target_repository)=true];
+  // This comment is left unintentionally blank.
+  string query = 2;
+  // This comment is left unintentionally blank.
+  bytes ref = 3;
+  // This comment is left unintentionally blank.
+  bool chunked_response = 4;
+}
+
+// This comment is left unintentionally blank.
+message SearchFilesByContentResponse {
+  // This comment is left unintentionally blank.
+  repeated bytes matches = 1;
+  // This comment is left unintentionally blank.
+  bytes match_data = 2;
+  // This comment is left unintentionally blank.
+  bool end_of_match = 3;
+}
+
+// Remote represents a git remote repository.
+message Remote {
+  // url is the URL of the remote repository.
+  string url = 1;
+  // http_authorization_header is the HTTP header which should be added to
+  // the request in order to authenticate against the repository.
+  string http_authorization_header = 3;
+  // mirror_refmaps contains the refspecs which shall be fetched. Some special
+  // refspecs are accepted:
+  //
+  // - "all_refs" gets translated to "+refs/*:refs/*", which mirrors all
+  //   references of the source repository.
+  // - "heads" gets translated to "+refs/heads/*:refs/heads/*", which mirrors
+  //   all branches of the source repository.
+  // - "tags" gets translated to "+refs/tags/*:refs/tags/*", which mirrors all
+  //   tags of the source repository.
+  //
+  // If no refspecs are given, this defaults to "all_refs".
+  repeated string mirror_refmaps = 4;
+  // HttpHost is the hostname of the remote repository. Use this when the
+  // URL hostname has already been resolved to an IP address to prevent DNS
+  // rebinding. This is deprecated as this field is/was never used.
+  string http_host = 5 [deprecated=true];
+  // ResolvedAddress holds the resolved IP address of the remote_url. This is
+  // used to avoid DNS rebinding by mapping the url to the resolved address.
+  // Only IPv4 dotted decimal ("192.0.2.1"), IPv6 ("2001:db8::68"), or IPv4-mapped
+  // IPv6 ("::ffff:192.0.2.1") forms are supported.
+  // Works with HTTP/HTTPS/Git/SSH protocols.
+  // Optional.
+  string resolved_address = 6;
+
+  // Previously, it was possible to specify a remote name. This was quite a
+  // dangerous field to set though: the name was simply used to create an ad-hoc
+  // remote which got deleted afterwards again. So unexpectedly, the remote
+  // isn't retained. And second, if the user chose the name of an existing
+  // remote, then it would've been deleted after the call. So in effect, the
+  // field was at best confusing and useless and at worst actively harmful.
+  reserved 2;
+  reserved "name";
+}
+
+// This comment is left unintentionally blank.
+message GetObjectDirectorySizeRequest {
+  // This comment is left unintentionally blank.
+  Repository repository = 1 [(target_repository)=true];
+}
+
+// This comment is left unintentionally blank.
+message GetObjectDirectorySizeResponse {
+  // Object directory size in kilobytes
+  int64 size = 1;
+}
+
+// This comment is left unintentionally blank.
+message RemoveRepositoryRequest {
+  // This comment is left unintentionally blank.
+  Repository repository = 1 [(target_repository)=true];
+}
+
+// This comment is left unintentionally blank.
+message RemoveRepositoryResponse {
+}
+
+// This comment is left unintentionally blank.
+message RenameRepositoryRequest {
+  // This comment is left unintentionally blank.
+  Repository repository = 1 [(target_repository)=true];
+  // This comment is left unintentionally blank.
+  string relative_path = 2;
+}
+
+// This comment is left unintentionally blank.
+message RenameRepositoryResponse{
+}
+
+// This comment is left unintentionally blank.
+message ReplicateRepositoryRequest {
+  // This comment is left unintentionally blank.
+  Repository repository = 1 [(target_repository)=true];
+  // This comment is left unintentionally blank.
+  Repository source = 2;
+}
+
+// This comment is left unintentionally blank.
+message ReplicateRepositoryResponse{
+}
+
+// OptimizeRepositoryRequest is a request for the OptimizeRepository RPC.
+message OptimizeRepositoryRequest {
+  // Strategy determines how the repository shall be optimized.
+  enum Strategy {
+    // STRATEGY_UNSPECIFIED indicates that the strategy has not been explicitly set by the
+    // caller. The default will be STRATEGY_HEURISTICAL in that case.
+    STRATEGY_UNSPECIFIED = 0;
+    // STRATEGY_HEURISTICAL performs heuristical optimizations in the repository. The server will
+    // decide on a set of heuristics which parts need optimization and which ones don't to avoid
+    // performing unnecessary optimization tasks.
+    STRATEGY_HEURISTICAL = 1;
+    // STRATEGY_EAGER performs eager optimizations in the repository. The server will optimize all
+    // data structures regardless of whether they are well-optimized already.
+    STRATEGY_EAGER = 2;
+  }
+
+  // Repository is the repository that should be optimized.
+  Repository repository = 1 [(target_repository)=true];
+  // Strategy is the strategy that determines which parts of the repository shall be optimized.
+  Strategy strategy = 2;
+}
+
+// OptimizeRepositoryResponse is a response for the OptimizeRepository RPC.
+message OptimizeRepositoryResponse {
+}
+
+// PruneUnreachableObjectsRequest is a request for the PruneUnreachableObjects
+// RPC call.
+message PruneUnreachableObjectsRequest {
+  // This comment is left unintentionally blank.
+  Repository repository = 1 [(target_repository)=true];
+}
+
+// PruneUnreachableObjectsResponse is a response for the
+// PruneUnreachableObjects RPC call.
+message PruneUnreachableObjectsResponse {
+}
+
+// SetFullPathRequest is a request for the SetFullPath RPC.
+message SetFullPathRequest {
+  // Repository is the repository whose gitconfig should be written to.
+  Repository repository = 1 [(target_repository)=true];
+  // Path is the path that shall be written into the "gitlab.fullpath" config key.
+  string path = 2;
+}
+
+// SetFullPathResponse is a response fqor the SetFullPath RPC.
+message SetFullPathResponse {
+}
+
+// FullPathRequest is a request for the FullPath RPC.
+message FullPathRequest {
+  // Repository is the repository whose gitconfig should be read.
+  Repository repository = 1 [(target_repository)=true];
+}
+
+// SetFullPathResponse is a response for the SetFullPath RPC.
+message FullPathResponse {
+  // Path read from the "gitlab.fullpath" config key.
+  string path = 1;
+}
+
+// RemoveAll is a request for the RemoveAll RPC.
+message RemoveAllRequest {
+  // StorageName of the storage to have all repositories removed from.
+  string storage_name = 1;
+}
+
+// RemoveAllResponse is a response for the RemoveAll RPC.
+message RemoveAllResponse {
+}

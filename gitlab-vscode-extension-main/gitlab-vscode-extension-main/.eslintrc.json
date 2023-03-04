@@ -1,0 +1,80 @@
+{
+  "extends": ["airbnb-base", "prettier"],
+  "plugins": ["import"],
+  "env": {
+    "mocha": true,
+    "jest": true
+  },
+  "settings": {
+    "import/resolver": {
+      "node": {
+        "extensions": [".js", ".ts"]
+      }
+    }
+  },
+  "ignorePatterns": ["node_modules/", "src/webview/", "out"],
+  "rules": {
+    "no-console": "off",
+    "no-return-await": "off",
+    "import/no-unresolved": [
+      2,
+      {
+        "ignore": ["vscode"]
+      }
+    ],
+    "import/extensions": [
+      "error",
+      "ignorePackages",
+      {
+        "js": "never",
+        "ts": "never"
+      }
+    ],
+    "no-shadow": "warn",
+    "no-use-before-define": "warn"
+  },
+  "reportUnusedDisableDirectives": true,
+  "overrides": [
+    {
+      "files": ["**/*.ts"],
+      "parser": "@typescript-eslint/parser",
+      "parserOptions": {
+        "project": "./tsconfig.json"
+      },
+      "extends": ["plugin:@typescript-eslint/recommended", "prettier"],
+      "globals": {
+        "Atomics": "readonly",
+        "SharedArrayBuffer": "readonly"
+      },
+      "rules": {
+        "@typescript-eslint/return-await": "error",
+        "@typescript-eslint/parameter-properties": "error",
+        "@typescript-eslint/no-floating-promises": "error",
+        "@typescript-eslint/no-unused-vars": ["error"],
+        "import/extensions": [
+          "error",
+          "ignorePackages",
+          {
+            "ts": "never"
+          }
+        ],
+        "import/prefer-default-export": "off",
+        "import/no-extraneous-dependencies": [
+          "error",
+          { "devDependencies": ["**/*.test.ts", "test/**/*"] }
+        ],
+        "no-useless-constructor": "off",
+        "no-unused-expressions": "off",
+        "default-param-last": "off"
+      },
+      "settings": {
+        "import/resolver": {
+          "node": {
+            "extensions": [".js", ".ts"]
+          }
+        }
+      },
+      "plugins": ["@typescript-eslint"]
+    }
+  ]
+}

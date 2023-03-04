@@ -1,0 +1,39 @@
+{
+  "root": true,
+  "extends": ["airbnb-base", "prettier", "plugin:vue/strongly-recommended"],
+  "plugins": ["import", "vue"],
+  "settings": {
+    "import/resolver": {
+      "node": {
+        "extensions": [".js", ".vue"]
+      }
+    }
+  },
+  "globals": {
+    "acquireVsCodeApi": "readonly"
+  },
+  "env": {
+    "jest": true,
+    "es6": true
+  },
+  "ignorePatterns": ["node_modules", "dist"],
+  "rules": {
+    "no-console": "off",
+    "no-return-await": "off",
+    "import/extensions": [
+      "error",
+      "ignorePackages",
+      {
+        "js": "never",
+        "vue": "never"
+      }
+    ],
+    "vue/no-v-html": "error",
+    "vue/max-attributes-per-line": "off",
+    "vue/html-indent": "off",
+    "vue/html-closing-bracket-newline": "off",
+    "vue/singleline-html-element-content-newline": "off",
+    "vue/html-self-closing": "off"
+  },
+  "reportUnusedDisableDirectives": true
+}

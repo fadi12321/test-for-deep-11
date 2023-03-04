@@ -1,0 +1,51 @@
+{
+  "id": 469379582,
+  "type": "DiffNote",
+  "body": "This is the core improvement. `NoteBody` sends the `note.body` to our `/api/v4/markdown` endpoint to render HTML. For labels, we can easily render the HTML ourselves, saving all the API requests and complexity.",
+  "attachment": null,
+  "author": {
+    "id": 3457201,
+    "name": "Tomas Vik",
+    "username": "viktomas",
+    "state": "active",
+    "avatar_url": "https://secure.gravatar.com/avatar/6042a9152ada74d9fb6a0cdce895337e?s=80&d=identicon",
+    "web_url": "https://gitlab.com/viktomas"
+  },
+  "created_at": "2021-03-08T14:19:18.296Z",
+  "updated_at": "2021-03-08T14:57:27.990Z",
+  "system": false,
+  "noteable_id": 87196674,
+  "noteable_type": "MergeRequest",
+  "commit_id": null,
+  "position": {
+    "base_sha": "5e6dffa282c5129aa67cd227a0429be21bfdaf80",
+    "start_sha": "5e6dffa282c5129aa67cd227a0429be21bfdaf80",
+    "head_sha": "a2616e0fea06c8b5188e4064a76d623afbf97b0c",
+    "old_path": "test.js",
+    "new_path": "test.ts",
+    "position_type": "text",
+    "old_line": null,
+    "new_line": 19,
+    "line_range": {
+      "start": {
+        "line_code": "5f7b6aabace88f74752a2b616628e855914e4bc7_19_19",
+        "type": "new",
+        "old_line": null,
+        "new_line": 19
+      },
+      "end": {
+        "line_code": "5f7b6aabace88f74752a2b616628e855914e4bc7_19_19",
+        "type": "new",
+        "old_line": null,
+        "new_line": 19
+      }
+    }
+  },
+  "resolvable": true,
+  "resolved": false,
+  "resolved_by": null,
+  "resolved_at": null,
+  "confidential": false,
+  "noteable_iid": 5,
+  "commands_changes": {}
+}

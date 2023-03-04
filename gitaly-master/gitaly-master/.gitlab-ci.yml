@@ -1,0 +1,491 @@
+stages:
+  - build
+  - test
+  - analyze
+  - qa
+
+default:
+  image: registry.gitlab.com/gitlab-org/gitlab-build-images/debian-${DEBIAN_VERSION}-ruby-${RUBY_VERSION}-golang-${GO_VERSION}-rust-${RUST_VERSION}:git-2.36
+  tags:
+    - gitlab-org
+  interruptible: true
+
+variables:
+  FF_USE_FASTZIP: "true"
+  FF_NETWORK_PER_BUILD: "true"
+  DEBIAN_VERSION: "bullseye"
+  UBI_VERSION: "8.6"
+  CACHE_PREFIX: "debian-${DEBIAN_VERSION}"
+  # We use Gitaly's Git version by default.
+  GIT_VERSION: "default"
+  GO_VERSION: "1.19"
+  RUBY_VERSION: "3.0"
+  RUST_VERSION: "1.65.0"
+  POSTGRES_VERSION: "12.6-alpine"
+  PGBOUNCER_VERSION: "1.16.1"
+  BUNDLE_PATH: "${CI_PROJECT_DIR}/_build/cache/ruby"
+  GOCACHE: "${CI_PROJECT_DIR}/_build/cache/go-build"
+  GOMODCACHE: "${CI_PROJECT_DIR}/_build/cache/go-mod"
+  # We run the build as an untrusted user in a source directory owned by
+  # "root". Running Git commands in that repository will thus fail due to
+  # Git's `safe.directory` protections, and that in turns breaks the Go
+  # build. We work around this by telling Go to not embed VCS information in
+  # the binaries.
+  GOFLAGS: "-buildvcs=false -modcacherw"
+  # Run tests with an intercepted home directory so that we detect cases where
+  # Gitaly picks up the gitconfig even though it ought not to.
+  GITALY_TESTING_INTERCEPT_HOME: "YesPlease"
+  # TEST_UID is the user ID we use to run tests in an unprivileged way. 9999 is
+  # chosen as a semi-random value so as to not interfer with any preexisting
+  # users.
+  TEST_UID: 9999
+
+include:
+  - template: Security/License-Scanning.gitlab-ci.yml
+  - template: Security/SAST.gitlab-ci.yml
+  - template: Security/Dependency-Scanning.gitlab-ci.yml
+  - template: Security/Secret-Detection.gitlab-ci.yml
+  - project: 'gitlab-org/quality/pipeline-common'
+    file:
+      - '/ci/danger-review.yml'
+
+workflow:
+  rules:
+    - if: $CI_MERGE_REQUEST_IID
+    - if: $CI_COMMIT_TAG
+    - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
+    - if: '$CI_COMMIT_BRANCH =~ /^[\d-]+-stable$/'
+
+.cache_deps:
+  cache: &cache_deps_configuration
+    key:
+      files:
+        - .gitlab-ci.yml
+        - Makefile
+      prefix: ${CACHE_PREFIX}-git-${GIT_VERSION}
+    paths:
+      - _build/deps
+      - _build/tools
+    policy: pull
+
+.cache_gems:
+  cache: &cache_gems_configuration
+    key:
+      files:
+        - .gitlab-ci.yml
+        - ruby/Gemfile.lock
+      prefix: ${CACHE_PREFIX}-ruby-${RUBY_VERSION}
+    paths:
+      - ${BUNDLE_PATH}
+    policy: pull
+
+.cache_go:
+  cache: &cache_go_configuration
+    key:
+      files:
+        - .gitlab-ci.yml
+        - go.sum
+      prefix: ${CACHE_PREFIX}-go-${GO_VERSION}
+    paths:
+      - ${GOCACHE}
+      - ${GOMODCACHE}
+    policy: pull
+
+.test_template: &test_definition
+  needs: []
+  stage: test
+  cache:
+    - *cache_deps_configuration
+    - *cache_gems_configuration
+    - *cache_go_configuration
+  services:
+    - name: postgres:${POSTGRES_VERSION}
+      alias: postgres
+      command: ["postgres", "-c", "max_connections=500"]
+  variables: &test_variables
+    PGHOST: postgres
+    PGPORT: 5432
+    PGUSER: postgres
+    POSTGRES_DB: praefect_test
+    POSTGRES_HOST_AUTH_METHOD: trust
+    TEST_REPORT: "${CI_PROJECT_DIR}/_build/reports/go-tests-report.xml"
+    TEST_COVERAGE_DIR: "${CI_PROJECT_DIR}/_build/reports/coverage"
+    TEST_FULL_OUTPUT: "${CI_PROJECT_DIR}/_build/reports/test-output.log"
+    TEST_LOG_DIR: "${CI_PROJECT_DIR}/_build/reports/test-logs"
+    TEST_OPTIONS: "-count=1 -timeout=20m" # a number of tests may exceed the default 10m
+  before_script: &test_before_script
+    - go version
+  script:
+    # Create the build directory for the unprivileged user that we're running
+    # tests as. This is required because the source directory itself is owned
+    # by `root`.
+    - install --directory --owner=${TEST_UID} --group=${TEST_UID} _build
+    # But the actual tests should run unprivileged. This assures that we pay
+    # proper attention to permission bits and that we don't modify the source
+    # directory.
+    - setpriv --reuid=${TEST_UID} --regid=${TEST_UID} --clear-groups --no-new-privs make ${TEST_TARGET} $(test "${GIT_VERSION}" = default && echo WITH_BUNDLED_GIT=YesPlease)
+  after_script: &test_after_script
+    - |
+      # Checking for panics in ${TEST_FULL_OUTPUT}
+      if [ "${CI_JOB_STATUS}" = "failed" ] && grep 'Output":"panic' "${TEST_FULL_OUTPUT}" > /dev/null; then
+        echo -e "\e[0Ksection_start:`date +%s`:panic_stack_traces[collapsed=true]\r\e[0K\e[0;31mPanic stack traces\e[0m"
+        ruby -e "require 'json'; f = File.read(ENV['TEST_FULL_OUTPUT']); f.lines.each do |l| out = JSON.parse(l); puts out['Output']; end" | awk '/^panic/ || /goroutine/,/^\s*$/'
+        echo -e "\e[0Ksection_end:`date +%s`:panic_stack_traces\r\e[0K"
+      fi
+  artifacts: &test_artifacts
+    paths:
+      - ${CI_PROJECT_DIR}/ruby/tmp/gitaly-rspec-test.log
+      - ${TEST_LOG_DIR}
+    reports:
+      junit: ${TEST_REPORT}
+    when: always
+    expire_in: 1 week
+
+.rules_run_on_merge: &rules_run_on_merge
+    # We only execute these rules in the main Gitaly repository. This is
+    # because jobs which run conditionally when being merged may depend on
+    # specific runners that aren't available in any other repository.
+    - if: $CI_PROJECT_PATH != "gitlab-org/gitaly"
+      when: manual
+      allow_failure: true
+    # Automatically run the job when the default branch is changing, e.g. due
+    # to a direct push.
+    - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
+    # Automatically run the job when a merge request gets queued for merge.
+    - if: $CI_MERGE_REQUEST_EVENT_TYPE == "merge_train"
+    # Otherwise, allow for manually scheduling the job in the context of a
+    # merge request.
+    - if: $CI_PIPELINE_SOURCE == "merge_request_event"
+      when: manual
+      allow_failure: true
+
+danger-review:
+  needs: []
+  stage: build
+  allow_failure: true
+  variables:
+    GITLAB_DANGERFILES_VERSION: "3.1.0"
+
+build:
+  needs: []
+  stage: build
+  cache:
+    - <<: *cache_deps_configuration
+      policy: pull-push
+    - <<: *cache_gems_configuration
+      policy: pull-push
+    - <<: *cache_go_configuration
+      policy: pull-push
+  script:
+    - go version
+    # Build the binaries as unprivileged user so that we can reuse the cache
+    # for our "test" targets, which also run unprivileged.
+    - install --directory --owner=${TEST_UID} --group=${TEST_UID} _build
+    - setpriv --reuid=${TEST_UID} --regid=${TEST_UID} --clear-groups --no-new-privs make build $(test "${GIT_VERSION}" = default && echo build-bundled-git || echo build-git)
+    - _support/test-boot . ${TEST_BOOT_ARGS}
+  parallel:
+    matrix:
+      - GO_VERSION: [ "1.18", "1.19" ]
+        TEST_BOOT_ARGS: "--bundled-git"
+      - GIT_VERSION: "v2.38.0"
+
+build:binaries:
+  needs: []
+  stage: build
+  cache:
+    - *cache_deps_configuration
+    - *cache_go_configuration
+  only:
+    - tags
+  script:
+    # Just in case we start running CI builds on other architectures in future
+    - go version
+    - make -j$(nproc) build
+    - cd _build && sha256sum bin/* | tee checksums.sha256.txt
+  artifacts:
+    paths:
+    - _build/checksums.sha256.txt
+    - _build/bin/
+    name: "${CI_JOB_NAME}:go-${GO_VERSION}-git-${GIT_VERSION}"
+    expire_in: 6 months
+  parallel:
+    matrix:
+      - GO_VERSION: [ "1.18", "1.19" ]
+
+test:
+  <<: *test_definition
+  parallel:
+    matrix:
+      # The following jobs all test with our default Git version, which is
+      # using bundled Git binaries.
+      - GO_VERSION: [ "1.18", "1.19" ]
+        TEST_TARGET: test
+      - TEST_TARGET: [ test-with-proxies, test-with-praefect, race-go ]
+      # We also verify that things work as expected with a non-bundled Git
+      # version matching our minimum required Git version.
+      - TEST_TARGET: test
+        GIT_VERSION: "v2.38.0"
+      # Execute tests with our minimum required Postgres version, as well. If
+      # the minimum version changes, please change this to the new minimum
+      # version. Furthermore, please make sure to update the minimum required
+      # version in `datastore.CheckPostgresVersion()`.
+      - POSTGRES_VERSION: "11.14-alpine"
+        TEST_TARGET: [ test, test-with-praefect ]
+
+test:coverage:
+  <<: *test_definition
+  coverage: /^total:\t+\(statements\)\t+\d+\.\d+%$/
+  artifacts:
+    reports:
+      coverage_report:
+        coverage_format: cobertura
+        path: ${TEST_COVERAGE_DIR}/cobertura.xml
+  variables:
+    <<: *test_variables
+    TEST_TARGET: "cover"
+
+test:pgbouncer:
+  <<: *test_definition
+  services:
+    - name: postgres:${POSTGRES_VERSION}
+      alias: postgres
+      command: ["postgres", "-c", "max_connections=500"]
+    - name: bitnami/pgbouncer:${PGBOUNCER_VERSION}
+      alias: pgbouncer
+  variables:
+    <<: *test_variables
+    # The following variables are used by PgBouncer to connect to Postgres.
+    POSTGRESQL_HOST: "${PGHOST}"
+    # The image doesn't support setting `auth_user`, so we're cheating and use
+    # "command line injection" here. In any case, `auth_user` is required so
+    # that we can connect as a different user, but authenticate as the actual
+    # PGUSER. We can fix this when
+    # https://github.com/bitnami/bitnami-docker-pgbouncer/pull/22 lands.
+    POSTGRESQL_PORT: "${PGPORT} auth_user=${PGUSER}"
+    POSTGRESQL_USERNAME: "${PGUSER}"
+    # These variables define how PgBouncer itself is configured
+    PGBOUNCER_AUTH_TYPE: trust
+    PGBOUNCER_DATABASE: "*"
+    PGBOUNCER_IGNORE_STARTUP_PARAMETERS: extra_float_digits
+    PGBOUNCER_POOL_MODE: transaction
+    PGBOUNCER_MAX_DB_CONNECTIONS: 100
+    # And these are finally used by Gitaly's tests.
+    PGHOST_PGBOUNCER: pgbouncer
+    PGPORT_PGBOUNCER: 6432
+    # We need to enable per-build networking such that the PgBouncer service
+    # can reach Postgres.
+    TEST_TARGET: "test-with-praefect"
+
+test:nightly:
+  <<: *test_definition
+  variables:
+    <<: *test_variables
+    SKIP_OVERRIDING_GIT_VERSION: "YesPlease"
+  parallel:
+    matrix:
+      - GIT_VERSION: [ "master", "next" ]
+        TEST_TARGET: [ test, test-with-proxies, test-with-praefect ]
+  rules:
+    - if: '$CI_PIPELINE_SOURCE == "schedule"'
+    - when: manual
+      allow_failure: true
+
+test:praefect_smoke:
+  <<: *test_definition
+  script:
+    - make -j$(nproc)
+    - ruby -rerb -e 'ERB.new(ARGF.read).run' _support/config.praefect.toml.ci-sql-test.erb > config.praefect.toml
+    - ./_build/bin/praefect -config config.praefect.toml sql-ping
+    - ./_build/bin/praefect -config config.praefect.toml sql-migrate
+
+test:sha256:
+  <<: *test_definition
+  parallel:
+    matrix:
+      - TEST_TARGET: [ test, test-with-praefect ]
+        GITALY_TESTING_ENABLE_SHA256: "YesPlease"
+
+test:fips:
+  <<: *test_definition
+  image: registry.gitlab.com/gitlab-org/gitlab-build-images/ubi-${UBI_VERSION}-ruby-${RUBY_VERSION}-golang-${GO_VERSION}-rust-${RUST_VERSION}:git-2.36
+  tags:
+    - fips
+  cache:
+    - <<: *cache_deps_configuration
+      policy: pull-push
+    - <<: *cache_gems_configuration
+      policy: pull-push
+    - <<: *cache_go_configuration
+      policy: pull-push
+  variables:
+    <<: *test_variables
+    CACHE_PREFIX: ubi-${UBI_VERSION}
+  before_script:
+    - test "$(cat /proc/sys/crypto/fips_enabled)" = "1" || (echo "System is not running in FIPS mode" && exit 1)
+    - chmod +t /tmp
+    - *test_before_script
+  parallel:
+    matrix:
+      - TEST_TARGET: [ test, test-with-praefect ]
+        FIPS_MODE: "YesPlease"
+        # There is no Go 1.19 release yet for the FIPS-based images.
+        GO_VERSION: "1.18"
+  rules:
+    # Automatically run the job when the FIPS label is set.
+    - if: $CI_MERGE_REQUEST_LABELS =~ /FIPS/
+    - *rules_run_on_merge
+
+test:macos:
+  image: macos-12-xcode-14
+  tags:
+    - shared-macos-amd64
+  needs: []
+  stage: test
+  cache:
+    - <<: *cache_deps_configuration
+      policy: pull-push
+    - <<: *cache_gems_configuration
+      policy: pull-push
+    - <<: *cache_go_configuration
+      policy: pull-push
+  variables:
+    <<: *test_variables
+    CACHE_PREFIX: macos-12-xcode-14
+    PGDATA: /usr/local/var/postgres
+    PGHOST: localhost
+    PGUSER: gitlab
+  before_script:
+    - brew uninstall go
+    - brew install cmake go@${GO_VERSION}
+    # Older Go versions may be keg-only and thus aren't linked into `PATH` by
+    # default. We need to override this mechanism to force this specific Go
+    # version to become active.
+    - brew link --force go@${GO_VERSION}
+    - sw_vers
+    - go version
+    - pg_ctl --version
+    - ulimit -n 4096 # The default of 256 can lead to 'too many open files' errors when running parallel tests
+    - pg_ctl -D /usr/local/var/postgres start > /tmp/postgres.log
+    - pg_ctl status
+    - createdb -U $PGUSER $POSTGRES_DB
+    - make -j$(nproc) build prepare-tests
+  script:
+    - make test-go
+  after_script:
+    - *test_after_script
+  rules:
+    - *rules_run_on_merge
+  artifacts:
+    <<: *test_artifacts
+
+verify:docs:
+  image: registry.gitlab.com/gitlab-org/gitlab-docs/lint-markdown:alpine-3.16-vale-2.20.2-markdownlint-0.32.2-markdownlint2-0.5.1
+  needs: []
+  stage: analyze
+  script:
+    - make lint-docs
+
+verify:
+  needs: []
+  stage: analyze
+  cache:
+    - *cache_deps_configuration
+    - *cache_gems_configuration
+    - *cache_go_configuration
+  script:
+    # Download the dependencies in case there was no cache hit, otherwise
+    # golang-ci lint will timeout downloading them.
+    - go mod download
+    - make -j$(nproc) verify
+  artifacts:
+    paths:
+      - _build/proto.diff
+      - ruby/proto/gitaly/*
+      - proto/go/gitalypb/*
+    when: on_failure
+
+dbschema:
+  needs: []
+  stage: analyze
+  cache:
+    - *cache_deps_configuration
+    - *cache_gems_configuration
+    - *cache_go_configuration
+  services:
+    # The database version we use must match the version of `pg_dump` we have
+    # available in the build image.
+    - postgres:11.13-alpine
+  variables:
+    <<: *test_variables
+  script:
+    - make dump-database-schema no-changes
+  artifacts:
+    paths:
+      - _support/praefect-schema.sql
+    when: on_failure
+
+semgrep-sast:
+  needs: []
+  stage: analyze
+  cache:
+    - *cache_go_configuration
+  rules:
+    - if: $SAST_DISABLED
+      when: never
+    - if: $CI_COMMIT_BRANCH && $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
+    - if: $CI_MERGE_REQUEST_IID
+    - if: $CI_COMMIT_TAG
+
+license_scanning:
+  needs: []
+  stage: analyze
+  rules:
+    - if: $LICENSE_SCANNING_DISABLED
+      when: never
+    - if: $CI_COMMIT_BRANCH && $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
+    - if: $CI_MERGE_REQUEST_IID
+    - if: $CI_COMMIT_TAG
+  variables:
+    LICENSE_FINDER_CLI_OPTS: '--aggregate-paths=. ruby'
+
+gemnasium-dependency_scanning:
+  needs: []
+  stage: analyze
+  rules:
+    - if: $DEPENDENCY_SCANNING_DISABLED
+      when: never
+    - if: $CI_COMMIT_BRANCH && $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
+    - if: $CI_MERGE_REQUEST_IID
+    - if: $CI_COMMIT_TAG
+
+secret_detection:
+  needs: []
+  stage: analyze
+  rules:
+    - if: $SECRET_DETECTION_DISABLED
+      when: never
+    - if: $CI_COMMIT_BRANCH && $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
+    - if: $CI_MERGE_REQUEST_IID
+    - if: $CI_COMMIT_TAG
+
+trigger-qa:
+  needs: []
+  stage: qa
+  trigger:
+    project: gitlab-org/build/omnibus-gitlab-mirror
+  variables:
+    ALTERNATIVE_SOURCES: "true"
+    GITALY_SERVER_VERSION: $CI_COMMIT_SHA
+    GITALY_SERVER_ALTERNATIVE_REPO: $CI_PROJECT_URL
+    ee: "true"
+  rules:
+    - when: manual
+      allow_failure: true
+
+qa:nightly-praefect-migration-test:
+  needs: []
+  stage: qa
+  trigger:
+    project: gitlab-org/quality/praefect-migration-testing
+  rules:
+    - if: '$CI_PIPELINE_SOURCE == "schedule"'

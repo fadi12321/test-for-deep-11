@@ -1,0 +1,32 @@
+{
+  "version": "2.0.0",
+  "tasks": [
+    {
+      "type": "npm",
+      "script": "watch-compile",
+      "isBackground": true,
+      "group": {
+        "kind": "build",
+        "isDefault": true
+      },
+      "problemMatcher": ["$esbuild-watch"],
+      "label": "npm: watch-compile"
+    },
+    {
+      "type": "npm",
+      "script": "compile",
+      "group": {
+        "kind": "build"
+      },
+      "problemMatcher": ["$tsc"],
+      "label": "npm: compile"
+    },
+    {
+      "type": "npm",
+      "script": "lint",
+      "problemMatcher": ["$eslint-stylish"],
+      "label": "npm: lint",
+      "detail": "eslint --ext .js --ext .ts . && prettier --check '**/*.{js,ts,vue,json}' && cd src/webview && npm run lint"
+    }
+  ]
+}

@@ -1,0 +1,15 @@
+# Created by .ignore support plugin (hsz.mobi)
+shared/pages/.update
+/gitlab-pages
+/vendor
+/gitlab-pages.conf
+/gl-code-quality-report.json
+/gl-license-scanning-report.json
+/coverage.html
+/junit-test-report.xml
+/tests.out
+
+# Used by the makefile
+/.GOPATH
+/.cover
+/bin

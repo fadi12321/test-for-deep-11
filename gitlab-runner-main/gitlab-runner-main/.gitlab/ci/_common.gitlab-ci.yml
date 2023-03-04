@@ -1,0 +1,184 @@
+variables:
+  # renovate: datasource=docker depName=golang allowedVersions=/1\.18\..+/
+  GO_VERSION: "1.18.10"
+  CI_IMAGE: "registry.gitlab.com/gitlab-org/gitlab-runner/ci:$GO_VERSION-2"
+  # Feature flags
+  FF_SCRIPT_SECTIONS: "true"
+  FF_USE_FASTZIP: "true"
+  FF_USE_NEW_BASH_EVAL_STRATEGY: "true"
+  # Following variables are used in some jobs to install specified software
+  RELEASE_INDEX_GEN_VERSION: "latest"
+  DOCKER_VERSION: 20.10.12
+  DOCKER_MACHINE_VERSION: "v0.16.2-gitlab.19"
+  BUILDX_VERSION: 0.7.1
+  KUBECTL_VERSION: 1.23.0
+  AWS_CLI_VERSION: 2.4.19
+  DUMB_INIT_VERSION: "1.2.2"
+  GIT_VERSION: "2.38.1"
+  GIT_VERSION_BUILD: "1"
+  GIT_LFS_VERSION: "3.2.0"
+  YQ_VERSION: "4.30.5"
+  LICENSE_MANAGEMENT_SETUP_CMD: echo "Skip setup. Dependency already vendored"
+  DOCS_GITLAB_REPO_SUFFIX: "runner"
+  # We're overriding rules for the jobs that we want to run.
+  # This will disable all other rules.
+  SAST_DISABLED: "true"
+  DEPENDENCY_SCANNING_DISABLED: "true"
+  TRANSFER_METER_FREQUENCY: "5s"
+  GO111MODULE: "on"
+  GO_FIPS_VERSION: "1.18"
+  GO_FIPS_IMAGE: registry.gitlab.com/gitlab-org/gitlab-runner/go-fips:$GO_FIPS_VERSION
+  # renovate: datasource=docker depName=alpine allowedVersions=/3\.12\..+/
+  ALPINE_312_VERSION: "3.12.12"
+  # renovate: datasource=docker depName=alpine allowedVersions=/3\.13\..+/
+  ALPINE_313_VERSION: "3.13.12"
+  # renovate: datasource=docker depName=alpine allowedVersions=/3\.14\..+/
+  ALPINE_314_VERSION: "3.14.8"
+  # renovate: datasource=docker depName=alpine allowedVersions=/3\.15\..+/
+  ALPINE_315_VERSION: "3.15.6"
+  # renovate: datasource=docker depName=ubuntu allowedVersions=/20\..+/
+  UBUNTU_VERSION: "20.04"
+  # renovate: datasource=docker depName=redhat/ubi8 versioning=redhat allowedVersions=/8\.7-.+/
+  UBI_FIPS_VERSION: "8.7-1054"
+
+default:
+  image: $CI_IMAGE
+  tags:
+  - gitlab-org
+  retry:
+    max: 2
+    when:
+    - runner_system_failure
+
+.no_cache:
+  cache: {}
+
+.no_dependencies:
+  dependencies: []
+
+.no_cache_and_dependencies:
+  extends:
+  - .no_cache
+  - .no_dependencies
+
+.docker:
+  services:
+  - docker:${DOCKER_VERSION}-dind
+  variables:
+    DOCKER_DRIVER: overlay2
+    DOCKER_HOST: tcp://docker:2376
+    DOCKER_TLS_VERIFY: 1
+    DOCKER_TLS_CERTDIR: "/certs"
+    DOCKER_CERT_PATH: "/certs/client"
+  tags:
+  - gitlab-org-docker
+
+.docker_qemu-before_script: &docker_qemu-before_script
+- docker run --privileged --rm tonistiigi/binfmt --install all
+
+.docker_qemu:
+  before_script:
+  - *docker_qemu-before_script
+
+.go-cache:
+  variables:
+    GOCACHE: $CI_PROJECT_DIR/.gocache-$CI_COMMIT_REF_PROTECTED
+  before_script:
+  - mkdir -p "$GOCACHE"
+  cache:
+    paths:
+    - $CI_PROJECT_DIR/.gocache-false/
+    key: "${CI_JOB_NAME}-${CI_COMMIT_REF_SLUG}"
+
+.go-cache-docker-qemu:
+  extends:
+  - .go-cache
+  before_script:
+  - *docker_qemu-before_script
+  - mkdir -p "$GOCACHE"
+
+.go-cache-windows:
+  variables:
+    GOCACHE: $CI_PROJECT_DIR\.gocache-$CI_COMMIT_REF_PROTECTED
+  before_script:
+  - New-Item -Path "$Env:GOCACHE" -Type Directory -Force
+  cache:
+    paths:
+    - $CI_PROJECT_DIR\.gocache-false\
+    key: "${CI_JOB_NAME}-${CI_COMMIT_REF_SLUG}"
+
+.linux-dependency-checksums:
+  variables:
+    DOCKER_MACHINE_LINUX_AMD64_CHECKSUM: "0c92b4acead3fbca5e27cae1df9f3b2b7ca0874faa7689d4c3fb3988cae11929"
+    DOCKER_MACHINE_LINUX_ARM64_CHECKSUM: "570856722b9bd0f69317e8cbfc906d04b40658857ed65a152ab23abb3e9bcaea"
+    DUMB_INIT_LINUX_AMD64_CHECKSUM: "37f2c1f0372a45554f1b89924fbb134fc24c3756efaedf11e07f599494e0eff9"
+    DUMB_INIT_LINUX_ARM64_CHECKSUM: "45b1bbf56cc03edda81e4220535a025bfe3ed6e93562222b9be4471005b3eeb3"
+    DUMB_INIT_LINUX_S390X_CHECKSUM: "8b3808c3c06d008b8f2eeb2789c7c99e0450b678d94fb50fd446b8f6a22e3a9d"
+    DUMB_INIT_LINUX_PPC64LE_CHECKSUM: "88b02a3bd014e4c30d8d54389597adc4f5a36d1d6b49200b5a4f6a71026c2246"
+    GIT_LFS_LINUX_AMD64_CHECKSUM: "d6730b8036d9d99f872752489a331995930fec17b61c87c7af1945c65a482a50"
+    GIT_LFS_LINUX_ARM64_CHECKSUM: "8186f0c0f69c30b55863d698e0a20cf79447a81df006b88221c2033d1e893638"
+    GIT_LFS_LINUX_S390X_CHECKSUM: "16556f0b2e1097a69e75a6e1bcabfa7bfd2e7ee9b02fe6e5414e1038a223ab97"
+    GIT_LFS_LINUX_PPC64LE_CHECKSUM: "ff1eeaddde5d964d10ce607f039154fe033073f43b8ff5e7f4eb407293fe1be3"
+
+.windows-dependency-checksums:
+  variables:
+    GIT_WINDOWS_AMD64_CHECKSUM: "77b14610d92e717ac025e5409e2e713553435bfad224753baf6858ebd0f7d96d"
+    GIT_LFS_WINDOWS_AMD64_CHECKSUM: "c2ee1f7b22d98f614cab94e1033052143f4dbf1207c09ce57e9390acc4bbf86e"
+    PWSH_WINDOWS_AMD64_CHECKSUM: "D234CFD6E9DD4A2CA68BFBC64C416DE42F31760E954812E8ADE02B6D57FE243F"
+
+.windows1809_variables:
+  variables:
+    WINDOWS_VERSION: servercore1809
+
+.windows1809:
+  extends:
+  - .windows1809_variables
+  tags:
+  - shared-windows
+  - windows
+  - windows-1809
+
+.windows2004_variables:
+  variables:
+    WINDOWS_VERSION: servercore2004
+
+.windows2004:
+  extends:
+  - .windows2004_variables
+  tags:
+  - windows
+  - windows-2004
+
+.windows20H2_variables:
+  variables:
+    WINDOWS_VERSION: servercore20H2
+
+.windows20H2:
+  extends:
+  - .windows20H2_variables
+  tags:
+  - windows
+  - windows-20h2
+
+.windows21H1_variables:
+  variables:
+    WINDOWS_VERSION: servercore21H1
+
+.windows21H1:
+  extends:
+  - .windows21H1_variables
+  tags:
+  - windows
+  - windows-21h1
+
+# .stage_done is used as a sentinel at stage n for stage n-1 completion, so we can kick off builds in later stages
+# without explicitly waiting for the completion of the n-1 stage
+.stage_done:
+  extends:
+  - .no_cache_and_dependencies
+  - .rules:merge_request_pipelines
+  image: alpine:latest
+  variables:
+    GIT_STRATEGY: none
+  script:
+  - exit 0

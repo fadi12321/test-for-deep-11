@@ -1,0 +1,94 @@
+.tests-common:
+  extends: .common
+  stage: test
+  needs: ['download deps']
+  artifacts:
+    reports:
+      junit: junit-test-report.xml
+
+.tests-matrix:
+  extends: .tests-common
+  image: golang:${GO_VERSION}
+  parallel:
+    matrix:
+      - GO_VERSION: ["1.18", "1.19", "1.20"]
+
+tests:
+  extends: .tests-matrix
+  script:
+    - echo "Running all unit tests..."
+    - make unit-test
+
+tests-acceptance:
+  extends: .tests-matrix
+  script:
+    - echo "Running just the acceptance tests...."
+    - make acceptance
+
+race:
+  extends: .tests-common
+  script:
+    - echo "Running race detector"
+    - make race
+
+cover:
+  extends: .tests-common
+  script:
+    - echo "Running coverage testing"
+    - make cover
+  coverage: '/total:.+\(statements\).+\d+\.\d+/'
+  artifacts:
+    paths:
+      - coverage.html
+
+code_quality:
+  extends: .tests-common
+  image: golangci/golangci-lint:v1.46.2
+  variables:
+    REPORT_FILE: gl-code-quality-report.json
+    LINT_FLAGS: "--color never --deadline 15m"
+    OUT_FORMAT: code-climate
+  script:
+    - golangci-lint run ./... --out-format ${OUT_FORMAT} ${LINT_FLAGS} | tee ${REPORT_FILE}
+  timeout: 15 minutes
+  cache: []
+  artifacts:
+    reports:
+      codequality: ${REPORT_FILE}
+    paths:
+      - ${REPORT_FILE}
+
+check deps:
+  extends: .tests-common
+  before_script:
+    # overwrites the before_script in .common since we don't need to run make cisetup for this job
+    - echo skipping
+  script:
+    - make deps-check
+
+check mocks:
+  extends: .tests-common
+  cache: []
+  script:
+    - make mocks-check
+
+package-and-qa:
+  stage: test
+  trigger:
+    project: 'gitlab-org/build/omnibus-gitlab-mirror'
+    branch: 'master'
+    strategy: depend
+  inherit:
+    variables: false
+  variables:
+    GITLAB_PAGES_VERSION: $CI_MERGE_REQUEST_SOURCE_BRANCH_SHA
+    TOP_UPSTREAM_SOURCE_PROJECT: $CI_PROJECT_PATH
+    TOP_UPSTREAM_SOURCE_REF: $CI_COMMIT_REF_NAME
+    TOP_UPSTREAM_SOURCE_JOB: $CI_JOB_URL
+  allow_failure: true
+  rules:
+    # Run only for merge requests
+    - if: '$CI_MERGE_REQUEST_IID'
+      when: manual
+    - when: never
+  needs: []

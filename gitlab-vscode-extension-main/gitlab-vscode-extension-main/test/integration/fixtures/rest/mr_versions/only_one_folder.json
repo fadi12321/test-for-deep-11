@@ -1,0 +1,40 @@
+{
+  "id": 253185535,
+  "head_commit_sha": "0c9c93e991ed30fc2b865716b04aadb73e2c6f8a",
+  "base_commit_sha": "dbf0405a4ea2c26a76cce67aeb7862f78a8d78c8",
+  "start_commit_sha": "dbf0405a4ea2c26a76cce67aeb7862f78a8d78c8",
+  "created_at": "2021-09-29T13:25:20.575Z",
+  "merge_request_id": 118935363,
+  "state": "collected",
+  "real_size": "1",
+  "commits": [
+    {
+      "id": "0c9c93e991ed30fc2b865716b04aadb73e2c6f8a",
+      "short_id": "0c9c93e9",
+      "created_at": "2021-09-29T13:18:34.000Z",
+      "parent_ids": [],
+      "title": "test: add folder",
+      "message": "test: add folder\n",
+      "author_name": "Liming Jin",
+      "author_email": "jinliming2@gmail.com",
+      "authored_date": "2021-09-29T13:18:34.000Z",
+      "committer_name": "Liming Jin",
+      "committer_email": "jinliming2@gmail.com",
+      "committed_date": "2021-09-29T13:18:34.000Z",
+      "trailers": {},
+      "web_url": "https://gitlab.com/jinliming2/test/-/commit/0c9c93e991ed30fc2b865716b04aadb73e2c6f8a"
+    }
+  ],
+  "diffs": [
+    {
+      "old_path": "only-folder/test.js",
+      "new_path": "only-folder/test.js",
+      "a_mode": "0",
+      "b_mode": "100644",
+      "new_file": true,
+      "renamed_file": false,
+      "deleted_file": false,
+      "diff": "@@ -0,0 +1 @@\n+console.log('Hello World');\n"
+    }
+  ]
+}

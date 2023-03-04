@@ -1,0 +1,13 @@
+# Generic artifacts
+/_build/
+/*.deb
+
+# Ruby build artifacts
+/.ruby-bundle
+/ruby/vendor/bundle
+/ruby/.bundle
+/gitaly-*.gem
+
+# Configuration and runtime data
+/config.mak
+/*.toml

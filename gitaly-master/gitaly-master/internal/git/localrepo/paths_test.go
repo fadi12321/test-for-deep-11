@@ -1,0 +1,165 @@
+package localrepo_test
+
+import (
+	"os"
+	"path/filepath"
+	"testing"
+
+	"github.com/stretchr/testify/require"
+	"gitlab.com/gitlab-org/gitaly/v15/internal/git/gittest"
+	"gitlab.com/gitlab-org/gitaly/v15/internal/git/localrepo"
+	"gitlab.com/gitlab-org/gitaly/v15/internal/git/quarantine"
+	"gitlab.com/gitlab-org/gitaly/v15/internal/gitaly/config"
+	"gitlab.com/gitlab-org/gitaly/v15/internal/helper/perm"
+	"gitlab.com/gitlab-org/gitaly/v15/internal/structerr"
+	"gitlab.com/gitlab-org/gitaly/v15/internal/testhelper"
+	"gitlab.com/gitlab-org/gitaly/v15/internal/testhelper/testcfg"
+	"gitlab.com/gitlab-org/gitaly/v15/proto/go/gitalypb"
+	"google.golang.org/grpc/codes"
+	"google.golang.org/grpc/status"
+	"google.golang.org/protobuf/proto"
+)
+
+func TestRepo_Path(t *testing.T) {
+	ctx := testhelper.Context(t)
+	cfg := testcfg.Build(t)
+
+	t.Run("valid repository", func(t *testing.T) {
+		repoProto, repoPath := gittest.CreateRepository(t, ctx, cfg, gittest.CreateRepositoryConfig{
+			SkipCreationViaService: true,
+		})
+		repo := localrepo.NewTestRepo(t, cfg, repoProto)
+
+		path, err := repo.Path()
+		require.NoError(t, err)
+		require.Equal(t, repoPath, path)
+	})
+
+	t.Run("deleted repository", func(t *testing.T) {
+		repoProto, repoPath := gittest.CreateRepository(t, ctx, cfg, gittest.CreateRepositoryConfig{
+			SkipCreationViaService: true,
+		})
+		repo := localrepo.NewTestRepo(t, cfg, repoProto)
+
+		require.NoError(t, os.RemoveAll(repoPath))
+
+		_, err := repo.Path()
+		require.Equal(t, structerr.NewNotFound("GetRepoPath: not a git repository: %q", repoPath), err)
+	})
+
+	t.Run("non-git repository", func(t *testing.T) {
+		repoProto, repoPath := gittest.CreateRepository(t, ctx, cfg, gittest.CreateRepositoryConfig{
+			SkipCreationViaService: true,
+		})
+		repo := localrepo.NewTestRepo(t, cfg, repoProto)
+
+		// Recreate the repository as a simple empty directory to simulate
+		// that the repository is in a partially-created state.
+		require.NoError(t, os.RemoveAll(repoPath))
+		require.NoError(t, os.MkdirAll(repoPath, perm.PublicDir))
+
+		_, err := repo.Path()
+		require.Equal(t, structerr.NewNotFound("GetRepoPath: not a git repository: %q", repoPath), err)
+	})
+}
+
+func TestRepo_ObjectDirectoryPath(t *testing.T) {
+	ctx := testhelper.Context(t)
+	cfg := testcfg.Build(t)
+
+	repoProto, repoPath := gittest.CreateRepository(t, ctx, cfg, gittest.CreateRepositoryConfig{
+		SkipCreationViaService: true,
+	})
+	locator := config.NewLocator(cfg)
+
+	quarantine, err := quarantine.New(ctx, repoProto, locator)
+	require.NoError(t, err)
+	quarantinedRepo := quarantine.QuarantinedRepo()
+
+	repoWithGitObjDir := func(repo *gitalypb.Repository, dir string) *gitalypb.Repository {
+		repo = proto.Clone(repo).(*gitalypb.Repository)
+		repo.GitObjectDirectory = dir
+		return repo
+	}
+
+	testCases := []struct {
+		desc string
+		repo *gitalypb.Repository
+		path string
+		err  codes.Code
+	}{
+		{
+			desc: "storages configured",
+			repo: repoWithGitObjDir(repoProto, "objects/"),
+			path: filepath.Join(repoPath, "objects/"),
+		},
+		{
+			desc: "no GitObjectDirectoryPath",
+			repo: repoProto,
+			err:  codes.InvalidArgument,
+		},
+		{
+			desc: "with directory traversal",
+			repo: repoWithGitObjDir(repoProto, "../bazqux.git"),
+			err:  codes.InvalidArgument,
+		},
+		{
+			desc: "valid path but doesn't exist",
+			repo: repoWithGitObjDir(repoProto, "foo../bazqux.git"),
+			err:  codes.NotFound,
+		},
+		{
+			desc: "with sneaky directory traversal",
+			repo: repoWithGitObjDir(repoProto, "/../bazqux.git"),
+			err:  codes.InvalidArgument,
+		},
+		{
+			desc: "with traversal outside repository",
+			repo: repoWithGitObjDir(repoProto, "objects/../.."),
+			err:  codes.InvalidArgument,
+		},
+		{
+			desc: "with traversal outside repository with trailing separator",
+			repo: repoWithGitObjDir(repoProto, "objects/../../"),
+			err:  codes.InvalidArgument,
+		},
+		{
+			desc: "with deep traversal at the end",
+			repo: repoWithGitObjDir(repoProto, "bazqux.git/../.."),
+			err:  codes.InvalidArgument,
+		},
+		{
+			desc: "quarantined repo",
+			repo: quarantinedRepo,
+			path: filepath.Join(repoPath, quarantinedRepo.GetGitObjectDirectory()),
+		},
+		{
+			desc: "quarantined repo with parent directory",
+			repo: repoWithGitObjDir(quarantinedRepo, quarantinedRepo.GetGitObjectDirectory()+"/.."),
+			err:  codes.InvalidArgument,
+		},
+		{
+			desc: "quarantined repo with directory traversal",
+			repo: repoWithGitObjDir(quarantinedRepo, quarantinedRepo.GetGitObjectDirectory()+"/../foobar.git"),
+			err:  codes.InvalidArgument,
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.desc, func(t *testing.T) {
+			repo := localrepo.NewTestRepo(t, cfg, tc.repo)
+
+			path, err := repo.ObjectDirectoryPath()
+
+			if tc.err != codes.OK {
+				st, ok := status.FromError(err)
+				require.True(t, ok)
+				require.Equal(t, tc.err, st.Code())
+				return
+			}
+
+			require.NoError(t, err)
+			require.Equal(t, tc.path, path)
+		})
+	}
+}

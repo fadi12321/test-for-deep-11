@@ -1,0 +1,17 @@
+{
+    "certificate": "",
+    "key": "",
+    "lookup_paths": [
+        {
+            "access_control": false,
+            "https_only": false,
+            "prefix": "/my/pages/project/",
+            "project_id": 123,
+            "source": {
+                "path": "group/new-source-test.gitlab.io/public/",
+                "type": "file",
+                "sha256": "0da779bb0f6de46082e32a7d59e52392e02c87fda3cfeb7a629c5591646443bb"
+            }
+        }
+    ]
+}

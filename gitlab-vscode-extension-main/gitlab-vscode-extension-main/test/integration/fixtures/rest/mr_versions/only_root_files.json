@@ -1,0 +1,50 @@
+{
+  "id": 253185983,
+  "head_commit_sha": "5633813a603bf0cf41766454145adc1f88cabbae",
+  "base_commit_sha": "dbf0405a4ea2c26a76cce67aeb7862f78a8d78c8",
+  "start_commit_sha": "dbf0405a4ea2c26a76cce67aeb7862f78a8d78c8",
+  "created_at": "2021-09-29T13:25:50.139Z",
+  "merge_request_id": 118935465,
+  "state": "collected",
+  "real_size": "2",
+  "commits": [
+    {
+      "id": "5633813a603bf0cf41766454145adc1f88cabbae",
+      "short_id": "5633813a",
+      "created_at": "2021-09-29T13:22:04.000Z",
+      "parent_ids": [],
+      "title": "test: add files",
+      "message": "test: add files\n",
+      "author_name": "Liming Jin",
+      "author_email": "jinliming2@gmail.com",
+      "authored_date": "2021-09-29T13:22:04.000Z",
+      "committer_name": "Liming Jin",
+      "committer_email": "jinliming2@gmail.com",
+      "committed_date": "2021-09-29T13:22:04.000Z",
+      "trailers": {},
+      "web_url": "https://gitlab.com/jinliming2/test/-/commit/5633813a603bf0cf41766454145adc1f88cabbae"
+    }
+  ],
+  "diffs": [
+    {
+      "old_path": "file1",
+      "new_path": "file1",
+      "a_mode": "0",
+      "b_mode": "100644",
+      "new_file": true,
+      "renamed_file": false,
+      "deleted_file": false,
+      "diff": "@@ -0,0 +1 @@\n+file1\n"
+    },
+    {
+      "old_path": "file2",
+      "new_path": "file2",
+      "a_mode": "0",
+      "b_mode": "100644",
+      "new_file": true,
+      "renamed_file": false,
+      "deleted_file": false,
+      "diff": "@@ -0,0 +1 @@\n+file2\n"
+    }
+  ]
+}

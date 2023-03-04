@@ -1,0 +1,41 @@
+Running with gitlab-runner 15.4.0~beta.5.gdefc7017 (defc7017)
+  on green-5.shared.runners-manager.gitlab.com/default xS6Vzpvo
+Preparing the "docker+machine" executor
+Using Docker executor with image mcr.microsoft.com/dotnet/core/sdk:latest ...
+Pulling docker image mcr.microsoft.com/dotnet/core/sdk:latest ...
+Using docker image sha256:d835d6974098e03f902ea006ca6ae274bc8ee825210b57d2794a7fbe10c26a8a for mcr.microsoft.com/dotnet/core/sdk:latest with digest mcr.microsoft.com/dotnet/core/sdk@sha256:a854fd8ff82fa9cc5284007d7c4357cf786e44ac2e59bbe83f13c56bb234dc11 ...
+Preparing environment
+Running on runner-xs6vzpvo-project-40127262-concurrent-0 via runner-xs6vzpvo-shared-1665503996-566f8f8a...
+Getting source from Git repository
+$ eval "$CI_PRE_CLONE_SCRIPT"
+Fetching changes with git depth set to 20...
+Initialized empty Git repository in /builds/X_Sheep/dotnet-test-ci/.git/
+Created fresh repository.
+Checking out 22b2937a as some-branch...
+
+Skipping Git submodules setup
+Downloading artifacts
+Downloading artifacts for build (3157479511)...
+Downloading artifacts from coordinator... ok        id=3157479511 responseStatus=200 OK token=yXLScTfi
+Executing "step_script" stage of the job script
+Using docker image sha256:d835d6974098e03f902ea006ca6ae274bc8ee825210b57d2794a7fbe10c26a8a for mcr.microsoft.com/dotnet/core/sdk:latest with digest mcr.microsoft.com/dotnet/core/sdk@sha256:a854fd8ff82fa9cc5284007d7c4357cf786e44ac2e59bbe83f13c56bb234dc11 ...
+$ dotnet run
+██████████████████████████████████████████████████████████████████████████████████████
+██████████████████████████████████████████████████████████████████████████████████████
+██████████████████████████████████████████████████████████████████████████████████████
+
+black    bright black     black    bright black
+red      bright red       red      bright red
+green    bright green     green    bright green
+yellow   bright yellow    yellow   bright yellow
+blue     bright blue      blue     bright blue
+magenta  bright magenta   magenta  bright magenta
+cyan     bright cyan      cyan     bright cyan
+white    bright white     white    bright white
+
+bold dim italic underline
+
+Doing some task... 100%
+Task complete
+Cleaning up project directory and file based variables
+Job succeeded

@@ -1,0 +1,23 @@
+{
+  "id": 77400724,
+  "user": {
+    "id": 3457201,
+    "name": "Tomas Vik",
+    "username": "viktomas",
+    "state": "active",
+    "avatar_url": "https://secure.gravatar.com/avatar/6042a9152ada74d9fb6a0cdce895337e?s=80&d=identicon",
+    "web_url": "https://gitlab.com/viktomas"
+  },
+  "created_at": "2020-12-11T13:13:20.192Z",
+  "resource_type": "MergeRequest",
+  "resource_id": 81385331,
+  "label": {
+    "id": 15126283,
+    "name": "Category:Editor Extension",
+    "color": "#428BCA",
+    "description": "Issues related to the Editor Extension category: https://about.gitlab.com/direction/create/editor_extension/",
+    "description_html": "Issues related to the Editor Extension category: <a href=\"https://about.gitlab.com/direction/create/editor_extension/\" rel=\"nofollow noreferrer noopener\" target=\"_blank\">https://about.gitlab.com/direction/create/editor_extension/</a>",
+    "text_color": "#FFFFFF"
+  },
+  "action": "add"
+}

@@ -1,0 +1,23 @@
+{
+  "id": 77400845,
+  "user": {
+    "id": 3457201,
+    "name": "Tomas Vik",
+    "username": "viktomas",
+    "state": "active",
+    "avatar_url": "https://secure.gravatar.com/avatar/6042a9152ada74d9fb6a0cdce895337e?s=80&d=identicon",
+    "web_url": "https://gitlab.com/viktomas"
+  },
+  "created_at": "2020-12-11T13:14:03.000Z",
+  "resource_type": "MergeRequest",
+  "resource_id": 81385331,
+  "label": {
+    "id": 1890178,
+    "name": "Accepting merge requests",
+    "color": "#69D100",
+    "description": "Issues opened for contribution from the Community. Issue's weight is an estimation of complexity. Please mention @gitlab-org/coaches if you have any questions :)",
+    "description_html": "Issues opened for contribution from the Community. Issue's weight is an estimation of complexity. Please mention <a href=\"/gitlab-org/coaches\" data-group=\"3952433\" data-reference-type=\"user\" data-container=\"body\" data-placement=\"top\" class=\"gfm gfm-project_member js-user-link\" title=\"GitLab.org / coaches\">@gitlab-org/coaches</a> if you have any questions :)",
+    "text_color": "#FFFFFF"
+  },
+  "action": "remove"
+}

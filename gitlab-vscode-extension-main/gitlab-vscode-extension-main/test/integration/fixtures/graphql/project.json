@@ -1,0 +1,10 @@
+{
+  "project": {
+    "id": "gid://gitlab/Project/278964",
+    "name": "GitLab",
+    "fullPath": "gitlab-org/gitlab",
+    "group": {
+      "id": "gid://gitlab/Group/9970"
+    }
+  }
+}

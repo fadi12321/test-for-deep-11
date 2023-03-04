@@ -1,0 +1,154 @@
+include:
+  # remove the `.latest` from the following templates after 16.0 GitLab release
+  # the `.latest` indicates the "nightly" version of the job definition
+  # when we remove the `.latest`, we'll be using the stable job definition
+  # https://gitlab.com/gitlab-org/gitlab/-/issues/217668#note_1136574790
+  - template: Jobs/SAST.latest.gitlab-ci.yml
+  - template: Jobs/Dependency-Scanning.latest.gitlab-ci.yml
+  - template: Jobs/Secret-Detection.latest.gitlab-ci.yml
+  - template: Jobs/License-Scanning.latest.gitlab-ci.yml
+  - project: 'gitlab-org/quality/pipeline-common'
+    file: '/ci/danger-review.yml'  # danger-review job below
+
+
+variables:
+  SAST_EXCLUDED_ANALYZERS: "eslint"
+
+# run the pipeline only on MRs, tags, and default branch
+workflow:
+  rules:
+    - if: $CI_PIPELINE_SOURCE == "merge_request_event"
+    - if: $CI_COMMIT_TAG
+    - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
+
+default:
+  tags:
+    - gitlab-org
+
+image: node:16-slim
+
+stages:
+  - test
+  - package
+  - publish
+
+lint:
+  stage: test
+  script:
+    - apt-get update && apt-get install -y git
+    - npm ci
+    - cd src/webview && npm ci && cd ../.. # webview dependencies
+    - git checkout . # the npm install automatically fixes package.json formatting issues, but we need the CI to discover them so we revert any changes
+    - npm run lint
+
+lint_commit:
+  stage: test
+  script:
+    - apt-get update && apt-get install -y git
+    - git fetch origin $CI_MERGE_REQUEST_TARGET_BRANCH_NAME $CI_COMMIT_SHA
+    - cd scripts/commit-lint && npm ci
+    - node lint.js
+  rules:
+    - if: '$CI_MERGE_REQUEST_IID && $CI_PROJECT_VISIBILITY == "public"' # lint.js script makes an API call without authentication
+      when: always
+
+check-ci-variables:
+  stage: test
+  script:
+    - npm ci
+    - npm run update-ci-variables
+  allow_failure: true # could be caused by changes in gitlab-org/gitlab repo, not related to current branch
+  rules:
+    - if: '$CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH'
+      when: always
+    - if: '$CI_PIPELINE_SOURCE == "merge_request_event"'
+      changes:
+        - 'src/completion/ci_variables.json'
+        - 'scripts/update_ci_variables.js'
+
+test-unit:
+  stage: test
+  script:
+    - apt-get update && apt-get install -y git
+    - npm ci
+    - npm run test-unit -- --coverage
+  artifacts:
+    when: always
+    reports:
+      junit:
+        - reports/unit.xml
+
+test-integration:
+  stage: test
+  variables:
+    DISPLAY: ':99.0'
+  script:
+    - apt-get update
+    - apt-get install -y xvfb libxtst6 libnss3 libgtk-3-0 libxss1 libasound2 libsecret-1-0 libgbm-dev git
+    - npm ci
+    - echo $DISPLAY
+    - /usr/bin/Xvfb :99 -screen 0 1024x768x24 > /dev/null 2>&1 &
+    - npm run test-integration
+
+test-integration-windows:
+  stage: test
+  tags:
+    - shared-windows
+    - windows
+    - windows-1809
+  variables:
+    # The normal TEMP variable contains the DOS short path C:\Users\GITLAB~1\AppData\Local\Temp
+    # which breaks the part of extension that does path comparison
+    TEMP: 'C:\Users\gitlab_runner\AppData\Local\Temp'
+  script:
+    - npm ci
+    - npm run test-integration
+
+test-webview:
+  stage: test
+  script:
+    - cd src/webview
+    - npm ci
+    - npm run test
+
+.package:
+  stage: package
+  script:
+    - npm ci
+    - cd src/webview && npm install && npm run build && cd ../.. # build webview
+    - npx vsce package
+  artifacts:
+    paths:
+      - '*.vsix'
+
+package_release:
+  extends: .package
+  artifacts:
+    expire_in: 1 year
+  only:
+    - tags
+
+# We test that packaging works to prevent failed releases
+# Without this task we would only find out packaging errors after tagging a release
+package_test:
+  extends: .package
+  artifacts:
+    expire_in: 10 days
+  except:
+    - tags
+
+publish_marketplace:
+  stage: publish
+  script:
+    - npx vsce publish --packagePath *.vsix -p $AZURE_ACCESS_TOKEN
+  when: manual
+  only:
+    - tags
+
+publish_open_vsx:
+  stage: publish
+  script:
+    - npx ovsx publish *.vsix -p $OPENVSX_ACCESS_TOKEN
+  when: manual
+  only:
+    - tags

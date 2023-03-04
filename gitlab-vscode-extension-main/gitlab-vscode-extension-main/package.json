@@ -1,0 +1,1154 @@
+{
+  "name": "gitlab-workflow",
+  "displayName": "GitLab Workflow",
+  "description": "Official GitLab-maintained extension for Visual Studio Code.",
+  "version": "3.60.0",
+  "publisher": "GitLab",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://gitlab.com/gitlab-org/gitlab-vscode-extension"
+  },
+  "engines": {
+    "vscode": "^1.68.0"
+  },
+  "categories": [
+    "Other"
+  ],
+  "keywords": [
+    "git",
+    "gitlab",
+    "merge request",
+    "pipeline",
+    "ci cd"
+  ],
+  "capabilities": {
+    "virtualWorkspaces": {
+      "supported": "limited",
+      "description": "Only basic read-only remote filesystem is available at the moment."
+    }
+  },
+  "activationEvents": [
+    "onStartupFinished",
+    "onFileSystem:gitlab-remote"
+  ],
+  "bugs": {
+    "url": "https://gitlab.com/gitlab-org/gitlab-vscode-extension/issues",
+    "email": "incoming+gitlab-org-gitlab-vscode-extension-5261717-issue-@incoming.gitlab.com"
+  },
+  "galleryBanner": {
+    "color": "#171321",
+    "theme": "dark"
+  },
+  "main": "out/extension",
+  "icon": "src/assets/logo.png",
+  "contributes": {
+    "commands": [
+      {
+        "command": "gl.authenticate",
+        "title": "Authenticate to GitLab.com",
+        "category": "GitLab"
+      },
+      {
+        "command": "gl.addAccount",
+        "title": "Add Account to VS Code",
+        "category": "GitLab"
+      },
+      {
+        "command": "gl.removeAccount",
+        "title": "Remove Account from VS Code",
+        "category": "GitLab"
+      },
+      {
+        "command": "gl.showIssuesAssignedToMe",
+        "title": "Show Issues Assigned to Me",
+        "category": "GitLab"
+      },
+      {
+        "command": "gl.showMergeRequestsAssignedToMe",
+        "title": "Show Merge Requests Assigned to Me",
+        "category": "GitLab"
+      },
+      {
+        "command": "gl.openActiveFile",
+        "title": "Open Active File on GitLab",
+        "category": "GitLab"
+      },
+      {
+        "command": "gl.copyLinkToActiveFile",
+        "title": "Copy Link to Active File on GitLab",
+        "category": "GitLab"
+      },
+      {
+        "command": "gl.openCurrentMergeRequest",
+        "title": "Open Merge Request for Current Branch",
+        "category": "GitLab"
+      },
+      {
+        "command": "gl.openCreateNewIssue",
+        "title": "Create New Issue on Current Project",
+        "category": "GitLab"
+      },
+      {
+        "command": "gl.openCreateNewMR",
+        "title": "Create New Merge Request on Current Project",
+        "category": "GitLab"
+      },
+      {
+        "command": "gl.openProjectPage",
+        "title": "Open Current Project on GitLab",
+        "category": "GitLab"
+      },
+      {
+        "command": "gl.createSnippetPatch",
+        "title": "Create Snippet Patch",
+        "category": "GitLab"
+      },
+      {
+        "command": "gl.applySnippetPatch",
+        "title": "Apply Snippet Patch",
+        "category": "GitLab"
+      },
+      {
+        "command": "gl.pipelineActions",
+        "title": "Pipeline Actions - View, Create, Retry, or Cancel",
+        "category": "GitLab"
+      },
+      {
+        "command": "gl.issueSearch",
+        "title": "Search Project Issues (Supports Filters)",
+        "category": "GitLab"
+      },
+      {
+        "command": "gl.mergeRequestSearch",
+        "title": "Search Project Merge Requests (Supports Filters)",
+        "category": "GitLab"
+      },
+      {
+        "command": "gl.projectAdvancedSearch",
+        "title": "Project Advanced Search (Issues, Merge Requests, Commits, Comments...)",
+        "category": "GitLab"
+      },
+      {
+        "command": "gl.compareCurrentBranch",
+        "title": "Compare Current Branch with Default Branch",
+        "category": "GitLab"
+      },
+      {
+        "command": "gl.createSnippet",
+        "title": "Create Snippet",
+        "category": "GitLab"
+      },
+      {
+        "command": "gl.insertSnippet",
+        "title": "Insert Snippet",
+        "category": "GitLab"
+      },
+      {
+        "command": "gl.validateCIConfig",
+        "title": "Validate GitLab CI/CD Config",
+        "category": "GitLab"
+      },
+      {
+        "command": "gl.showMergedCIConfig",
+        "title": "Show Merged GitLab CI/CD Config",
+        "category": "GitLab",
+        "icon": "$(open-preview)"
+      },
+      {
+        "command": "gl.showOutput",
+        "title": "Show Extension Logs",
+        "category": "GitLab"
+      },
+      {
+        "command": "gl.sidebarViewAsList",
+        "title": "View Sidebar as List",
+        "category": "GitLab",
+        "icon": "$(list-flat)"
+      },
+      {
+        "command": "gl.sidebarViewAsTree",
+        "title": "View Sidebar as Tree",
+        "category": "GitLab",
+        "icon": "$(list-tree)"
+      },
+      {
+        "command": "gl.refreshSidebar",
+        "title": "Refresh Sidebar",
+        "category": "GitLab",
+        "icon": {
+          "light": "src/assets/images/light/refresh.svg",
+          "dark": "src/assets/images/dark/refresh.svg"
+        }
+      },
+      {
+        "command": "gl.openMrFile",
+        "title": "Open Changed File in Local Project",
+        "category": "GitLab",
+        "icon": "$(go-to-file)"
+      },
+      {
+        "command": "gl.resolveThread",
+        "title": "Resolve Thread",
+        "category": "GitLab",
+        "icon": "$(pass)"
+      },
+      {
+        "command": "gl.unresolveThread",
+        "title": "Unresolve Thread",
+        "category": "GitLab",
+        "icon": "$(pass-filled)"
+      },
+      {
+        "command": "gl.deleteComment",
+        "title": "Delete Comment",
+        "category": "GitLab",
+        "icon": "$(trash)"
+      },
+      {
+        "command": "gl.startEditingComment",
+        "title": "Edit Comment",
+        "category": "GitLab",
+        "icon": "$(edit)"
+      },
+      {
+        "command": "gl.cancelEditingComment",
+        "title": "Cancel",
+        "category": "GitLab"
+      },
+      {
+        "command": "gl.cancelFailedComment",
+        "title": "Cancel",
+        "category": "GitLab"
+      },
+      {
+        "command": "gl.retryFailedComment",
+        "title": "Add Comment Now",
+        "category": "GitLab"
+      },
+      {
+        "command": "gl.submitCommentEdit",
+        "title": "Save Comment",
+        "category": "GitLab"
+      },
+      {
+        "command": "gl.createComment",
+        "title": "Add Comment Now",
+        "category": "GitLab"
+      },
+      {
+        "command": "gl.checkoutMrBranch",
+        "title": "Check out Merge Request Branch"
+      },
+      {
+        "command": "gl.cloneWiki",
+        "title": "Clone Wiki",
+        "category": "GitLab"
+      },
+      {
+        "command": "gl.openRepository",
+        "title": "Open Remote Repository",
+        "category": "GitLab"
+      },
+      {
+        "command": "gl.selectProjectForRepository",
+        "title": "Select Project for Repository",
+        "category": "GitLab"
+      },
+      {
+        "command": "gl.selectProject",
+        "title": "Select GitLab Project",
+        "category": "GitLab"
+      },
+      {
+        "command": "gl.assignProject",
+        "title": "Manually Assign GitLab Project",
+        "category": "GitLab"
+      },
+      {
+        "command": "gl.clearSelectedProject",
+        "title": "Clear Selected Project",
+        "category": "GitLab"
+      },
+      {
+        "command": "gl.downloadArtifacts",
+        "title": "Download Artifacts",
+        "category": "GitLab"
+      },
+      {
+        "command": "gl.openInBrowser",
+        "title": "Open in browser",
+        "category": "GitLab"
+      },
+      {
+        "command": "gl.executeJob",
+        "title": "Execute Job",
+        "category": "GitLab"
+      },
+      {
+        "command": "gl.retryJob",
+        "title": "Retry Job",
+        "category": "GitLab"
+      },
+      {
+        "command": "gl.cancelJob",
+        "title": "Cancel Job",
+        "category": "GitLab"
+      },
+      {
+        "command": "gl.retryFailedPipelineJobs",
+        "title": "Retry Failed Jobs",
+        "category": "GitLab"
+      },
+      {
+        "command": "gl.cancelPipeline",
+        "title": "Cancel Pipeline",
+        "category": "GitLab"
+      },
+      {
+        "command": "gl.openTraceArtifact",
+        "title": "Display log",
+        "category": "GitLab"
+      },
+      {
+        "command": "gl.waitForPendingJob",
+        "title": "Display log",
+        "category": "GitLab"
+      },
+      {
+        "command": "gl.saveRawJobTrace",
+        "title": "Save raw job trace",
+        "category": "GitLab",
+        "icon": "$(save-as)"
+      },
+      {
+        "command": "gl.scrollToBottom",
+        "title": "Scroll to bottom",
+        "enablement": "gitlab.canScrollToBottom",
+        "category": "GitLab",
+        "icon": "$(fold-down)"
+      }
+    ],
+    "menus": {
+      "commandPalette": [
+        {
+          "command": "gl.selectProjectForRepository",
+          "when": "false"
+        },
+        {
+          "command": "gl.resolveThread",
+          "when": "false"
+        },
+        {
+          "command": "gl.unresolveThread",
+          "when": "false"
+        },
+        {
+          "command": "gl.deleteComment",
+          "when": "false"
+        },
+        {
+          "command": "gl.startEditingComment",
+          "when": "false"
+        },
+        {
+          "command": "gl.cancelEditingComment",
+          "when": "false"
+        },
+        {
+          "command": "gl.cancelFailedComment",
+          "when": "false"
+        },
+        {
+          "command": "gl.retryFailedComment",
+          "when": "false"
+        },
+        {
+          "command": "gl.submitCommentEdit",
+          "when": "false"
+        },
+        {
+          "command": "gl.createComment",
+          "when": "false"
+        },
+        {
+          "command": "gl.checkoutMrBranch",
+          "when": "false"
+        },
+        {
+          "command": "gl.downloadArtifacts",
+          "when": "false"
+        },
+        {
+          "command": "gl.openInBrowser",
+          "when": "false"
+        },
+        {
+          "command": "gl.executeJob",
+          "when": "false"
+        },
+        {
+          "command": "gl.retryJob",
+          "when": "false"
+        },
+        {
+          "command": "gl.cancelJob",
+          "when": "false"
+        },
+        {
+          "command": "gl.retryFailedPipelineJobs",
+          "when": "false"
+        },
+        {
+          "command": "gl.cancelPipeline",
+          "when": "false"
+        },
+        {
+          "command": "gl.openTraceArtifact",
+          "when": "false"
+        },
+        {
+          "command": "gl.waitForPendingJob",
+          "when": "false"
+        },
+        {
+          "command": "gl.saveRawJobTrace",
+          "when": "false"
+        },
+        {
+          "command": "gl.scrollToBottom",
+          "when": "false"
+        },
+        {
+          "command": "gl.openMrFile",
+          "when": "false"
+        },
+        {
+          "command": "gl.showIssuesAssignedToMe",
+          "when": "gitlab:validState"
+        },
+        {
+          "command": "gl.showMergeRequestsAssignedToMe",
+          "when": "gitlab:validState"
+        },
+        {
+          "command": "gl.openActiveFile",
+          "when": "gitlab:validState && editorIsOpen"
+        },
+        {
+          "command": "gl.copyLinkToActiveFile",
+          "when": "gitlab:validState && editorIsOpen"
+        },
+        {
+          "command": "gl.openCurrentMergeRequest",
+          "when": "gitlab:validState"
+        },
+        {
+          "command": "gl.openCreateNewIssue",
+          "when": "gitlab:validState"
+        },
+        {
+          "command": "gl.openCreateNewMR",
+          "when": "gitlab:validState"
+        },
+        {
+          "command": "gl.openProjectPage",
+          "when": "gitlab:validState"
+        },
+        {
+          "command": "gl.pipelineActions",
+          "when": "gitlab:validState"
+        },
+        {
+          "command": "gl.issueSearch",
+          "when": "gitlab:validState"
+        },
+        {
+          "command": "gl.mergeRequestSearch",
+          "when": "gitlab:validState"
+        },
+        {
+          "command": "gl.projectAdvancedSearch",
+          "when": "gitlab:validState"
+        },
+        {
+          "command": "gl.compareCurrentBranch",
+          "when": "gitlab:validState"
+        },
+        {
+          "command": "gl.createSnippet",
+          "when": "gitlab:validState && editorIsOpen"
+        },
+        {
+          "command": "gl.insertSnippet",
+          "when": "gitlab:validState && editorIsOpen"
+        },
+        {
+          "command": "gl.validateCIConfig",
+          "when": "gitlab:validState && editorIsOpen"
+        },
+        {
+          "command": "gl.showMergedCIConfig",
+          "when": "gitlab:validState && editorIsOpen"
+        },
+        {
+          "command": "gl.sidebarViewAsList",
+          "when": "false"
+        },
+        {
+          "command": "gl.sidebarViewAsTree",
+          "when": "false"
+        },
+        {
+          "command": "gl.refreshSidebar",
+          "when": "gitlab:validState"
+        },
+        {
+          "command": "gl.cloneWiki",
+          "when": "!gitlab:noAccount"
+        },
+        {
+          "command": "gl.createSnippetPatch",
+          "when": "gitlab:validState"
+        },
+        {
+          "command": "gl.applySnippetPatch",
+          "when": "gitlab:validState"
+        },
+        {
+          "command": "gl.selectProject",
+          "when": "false"
+        },
+        {
+          "command": "gl.assignProject",
+          "when": "false"
+        },
+        {
+          "command": "gl.clearSelectedProject",
+          "when": "false"
+        }
+      ],
+      "view/title": [
+        {
+          "command": "gl.sidebarViewAsList",
+          "when": "view =~ /(currentBranchInfo|issuesAndMrs)/ && gitlab.sidebarView == tree",
+          "group": "navigation@1"
+        },
+        {
+          "command": "gl.sidebarViewAsTree",
+          "when": "view =~ /(currentBranchInfo|issuesAndMrs)/ && gitlab.sidebarView == list",
+          "group": "navigation@1"
+        },
+        {
+          "command": "gl.refreshSidebar",
+          "when": "view =~ /(currentBranchInfo|issuesAndMrs)/",
+          "group": "navigation@2"
+        }
+      ],
+      "view/item/context": [
+        {
+          "command": "gl.openMrFile",
+          "when": "view =~ /issuesAndMrs/ && viewItem == changed-file-item",
+          "group": "inline"
+        },
+        {
+          "command": "gl.checkoutMrBranch",
+          "when": "view =~ /issuesAndMrs/ && viewItem == mr-item-from-same-project"
+        },
+        {
+          "command": "gl.assignProject",
+          "when": "view =~ /issuesAndMrs/ && viewItem == no-project-detected"
+        },
+        {
+          "command": "gl.selectProject",
+          "when": "view =~ /issuesAndMrs/ && viewItem == multiple-projects-detected"
+        },
+        {
+          "command": "gl.clearSelectedProject",
+          "when": "view =~ /issuesAndMrs/ && viewItem == selected-project"
+        },
+        {
+          "command": "gl.openInBrowser",
+          "when": "view =~ /currentBranchInfo/ && viewItem =~ /with-url/",
+          "group": "navigation@1"
+        },
+        {
+          "command": "gl.cancelJob",
+          "when": "view =~ /currentBranchInfo/ && viewItem =~ /cancellable-job/"
+        },
+        {
+          "command": "gl.retryJob",
+          "when": "view =~ /currentBranchInfo/ && viewItem =~ /retryable-job/"
+        },
+        {
+          "command": "gl.cancelPipeline",
+          "when": "view =~ /currentBranchInfo/ && viewItem =~ /cancellable-pipeline/"
+        },
+        {
+          "command": "gl.retryFailedPipelineJobs",
+          "when": "view =~ /currentBranchInfo/ && viewItem =~ /retryable-pipeline/"
+        },
+        {
+          "command": "gl.executeJob",
+          "when": "view =~ /currentBranchInfo/ && viewItem =~ /executable-job/"
+        },
+        {
+          "command": "gl.downloadArtifacts",
+          "when": "view =~ /currentBranchInfo/ && viewItem =~ /with-artifacts/"
+        },
+        {
+          "command": "gl.openTraceArtifact",
+          "when": "view =~ /currentBranchInfo/ && viewItem =~ /with-trace/",
+          "group": "navigation@2"
+        },
+        {
+          "command": "gl.waitForPendingJob",
+          "when": "view =~ /currentBranchInfo/ && viewItem =~ /pending-job/",
+          "group": "navigation@2"
+        }
+      ],
+      "comments/comment/title": [
+        {
+          "command": "gl.startEditingComment",
+          "group": "inline@1",
+          "when": "commentController =~ /^gitlab-mr-/ && comment =~ /canAdmin/"
+        },
+        {
+          "command": "gl.deleteComment",
+          "group": "inline@2",
+          "when": "commentController =~ /^gitlab-mr-/ && comment =~ /canAdmin/"
+        }
+      ],
+      "comments/comment/context": [
+        {
+          "command": "gl.submitCommentEdit",
+          "group": "inline@1",
+          "when": "commentController =~ /^gitlab-mr-/ && comment =~ /synced-comment/"
+        },
+        {
+          "command": "gl.cancelEditingComment",
+          "group": "inline@2",
+          "when": "commentController =~ /^gitlab-mr-/ && comment =~ /synced-comment/"
+        },
+        {
+          "command": "gl.retryFailedComment",
+          "group": "inline@1",
+          "when": "commentController =~ /^gitlab-mr-/ && comment =~ /failed-comment/"
+        },
+        {
+          "command": "gl.cancelFailedComment",
+          "group": "inline@2",
+          "when": "commentController =~ /^gitlab-mr-/ && comment =~ /failed-comment/"
+        }
+      ],
+      "comments/commentThread/title": [
+        {
+          "command": "gl.resolveThread",
+          "group": "inline@1",
+          "when": "commentController =~ /^gitlab-mr-/ && commentThread == unresolved"
+        },
+        {
+          "command": "gl.unresolveThread",
+          "group": "inline@2",
+          "when": "commentController =~ /^gitlab-mr-/ && commentThread == resolved"
+        }
+      ],
+      "comments/commentThread/context": [
+        {
+          "command": "gl.createComment",
+          "group": "inline",
+          "when": "commentController =~ /^gitlab-mr-/"
+        }
+      ],
+      "editor/title": [
+        {
+          "command": "gl.openMrFile",
+          "when": "resourceScheme == 'gl-review' && resourceFilename != '' && isInDiffEditor",
+          "group": "navigation@-99"
+        },
+        {
+          "command": "gl.showMergedCIConfig",
+          "when": "gitlab:validState && resourceScheme != 'gl-merged-ci-yaml' && resourceFilename == '.gitlab-ci.yml'",
+          "group": "navigation@-99"
+        },
+        {
+          "command": "gl.saveRawJobTrace",
+          "when": "resourceScheme == 'gl-job-log'",
+          "group": "navigation@-99"
+        },
+        {
+          "command": "gl.scrollToBottom",
+          "when": "resourceScheme == 'gl-job-log'",
+          "group": "navigation"
+        }
+      ]
+    },
+    "viewsContainers": {
+      "activitybar": [
+        {
+          "id": "gitlab-workflow",
+          "title": "GitLab Workflow",
+          "icon": "src/assets/images/light/gitlab-logo.svg"
+        }
+      ]
+    },
+    "views": {
+      "gitlab-workflow": [
+        {
+          "id": "issuesAndMrs",
+          "name": "Issues and Merge Requests"
+        },
+        {
+          "id": "currentBranchInfo",
+          "name": "For current branch",
+          "when": "gitlab:validState"
+        }
+      ]
+    },
+    "viewsWelcome": [
+      {
+        "view": "issuesAndMrs",
+        "contents": "Welcome to the GitLab Workflow extension! If you use GitLab.com, you can connect with OAuth:\n[Connect to GitLab.com with OAuth](command:gl.authenticate)\nUsing a self-managed installation of GitLab, or can't connect to GitLab.com with OAuth? Use the method appropriate for your installation type to create an access token with the 'api' and 'read_user' scopes:\n- For GitLab.com: [create a token on GitLab.com](https://gitlab.com/-/profile/personal_access_tokens?name=GitLab+VS+Code+Extension&scopes=api,read_user).\n- For self-managed instances: in GitLab, select your avatar in the top right corner and select 'Preferences.' In the left sidebar, select 'Access Tokens,' then select 'Add a personal access token.'\nAfter you create a token, select 'Add Account':\n[Add Account](command:gl.addAccount)\nTo learn more, read [the setup information](https://gitlab.com/gitlab-org/gitlab-vscode-extension#setup) for this extension.",
+        "when": "gitlab:noAccount"
+      },
+      {
+        "view": "issuesAndMrs",
+        "contents": "No Git repository available. To learn how to fix this, check the Source Control tab.\n[Open Source Control](command:workbench.view.scm)",
+        "when": "gitlab:noRepository"
+      }
+    ],
+    "configuration": {
+      "title": "GitLab Workflow (GitLab VSCode Extension)",
+      "properties": {
+        "gitlab.showStatusBarLinks": {
+          "type": "boolean",
+          "default": true,
+          "description": "Display all GitLab-related links in the status bar (requires restarting Visual Studio Code)",
+          "deprecationMessage": "To hide an item from the status bar, you should right-click the item in Visual Studio Code."
+        },
+        "gitlab.showIssueLinkOnStatusBar": {
+          "type": "boolean",
+          "default": true,
+          "description": "Display the GitLab issue link in the status bar",
+          "deprecationMessage": "To hide an item from the status bar, you should right-click the item in Visual Studio Code."
+        },
+        "gitlab.showMrStatusOnStatusBar": {
+          "type": "boolean",
+          "default": true,
+          "description": "Display the GitLab merge request status in the status bar",
+          "deprecationMessage": "To hide an item from the status bar, you should right-click the item in Visual Studio Code."
+        },
+        "gitlab.ca": {
+          "type": "string",
+          "default": null,
+          "description": "Custom CA file to use (example: /etc/ssl/certs/ca-certificates.crt)"
+        },
+        "gitlab.cert": {
+          "type": "string",
+          "default": null,
+          "description": "Custom Certificate file to use (example: /etc/ssl/certs/certificate.crt)"
+        },
+        "gitlab.certKey": {
+          "type": "string",
+          "default": null,
+          "description": "Custom Certificate Key file to use (example: /etc/ssl/certs/certificateKey.key)"
+        },
+        "gitlab.ignoreCertificateErrors": {
+          "type": "boolean",
+          "default": false,
+          "description": "Ignore TLS/SSL certificate errors when calling the GitLab API"
+        },
+        "gitlab.pipelineGitRemoteName": {
+          "type": "string",
+          "default": null,
+          "description": "Name of the git remote to use in order to locate the Gitlab project for your pipeline. Keep empty for default"
+        },
+        "gitlab.showPipelineUpdateNotifications": {
+          "type": "boolean",
+          "default": false,
+          "description": "Show notification in VSCode when pipeline status changed"
+        },
+        "gitlab.showProjectMergeRequests": {
+          "type": "boolean",
+          "default": true,
+          "description": "Enable the \"All Project Merge Requests\" sidebar pane"
+        },
+        "gitlab.debug": {
+          "type": "boolean",
+          "default": false,
+          "description": "Turning on debug mode turns on better stack trace resolution (source maps) and shows more detailed logs. Restart the extension after enabling this option."
+        },
+        "gitlab.customQueries": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "type": "object",
+            "title": "Custom GitLab Query",
+            "required": [
+              "name"
+            ],
+            "properties": {
+              "name": {
+                "type": "string",
+                "description": "The label to show in the GitLab panel"
+              },
+              "maxResults": {
+                "type": "number",
+                "description": "The maximum number of results to show",
+                "default": 20,
+                "maximum": 100,
+                "minimum": 1
+              },
+              "orderBy": {
+                "type": "string",
+                "description": "Return issues ordered by the selected value. It is not applicable for vulnerabilities",
+                "enum": [
+                  "created_at",
+                  "updated_at",
+                  "priority",
+                  "due_date",
+                  "relative_position",
+                  "label_priority",
+                  "milestone_due",
+                  "popularity",
+                  "weight"
+                ],
+                "default": "created_at"
+              },
+              "sort": {
+                "type": "string",
+                "description": "Return issues sorted in ascending or descending order. It is not applicable for vulnerabilities",
+                "enum": [
+                  "asc",
+                  "desc"
+                ],
+                "default": " desc"
+              },
+              "scope": {
+                "type": "string",
+                "description": "Return Gitlab items for the given scope. It is not applicable for epics. \"assigned_to_me\" and \"created_by_me\" are not applicable for vulnerabilities. \"dismissed\" is not applicable for issues and merge requests",
+                "enum": [
+                  "assigned_to_me",
+                  "created_by_me",
+                  "dismissed",
+                  "all"
+                ],
+                "default": "all"
+              },
+              "type": {
+                "type": "string",
+                "description": "The type of GitLab items to return. If snippets is selected, none of the other filter will work. Epics will work only on GitLab ultimate/gold.",
+                "enum": [
+                  "issues",
+                  "merge_requests",
+                  "epics",
+                  "snippets",
+                  "vulnerabilities"
+                ],
+                "default": "merge_requests"
+              },
+              "noItemText": {
+                "type": "string",
+                "description": "The text to show if the query returns no items",
+                "default": "No items found."
+              },
+              "state": {
+                "type": "string",
+                "description": "Return \"all\" issues or just those that are \"opened\" or \"closed\". It is not applicable for vulnerabilities",
+                "enum": [
+                  "all",
+                  "opened",
+                  "closed"
+                ],
+                "default": "opened"
+              },
+              "labels": {
+                "type": "array",
+                "description": "Array of label names, Gitlab item must have all labels to be returned. \"None\" lists all GitLab items with no labels. \"Any\" lists all GitLab issues with at least one label. Predefined names are case-insensitive. It is not applicable for vulnerabilities",
+                "items": {
+                  "type": "string"
+                }
+              },
+              "milestone": {
+                "type": "string",
+                "description": "The milestone title. \"None\" lists all GitLab items with no milestone. \"Any\" lists all GitLab items that have an assigned milestone. It is not applicable for epics and vulnerabilities"
+              },
+              "author": {
+                "type": "string",
+                "description": "Return GitLab items created by the given username. It is not applicable for vulnerabilities"
+              },
+              "assignee": {
+                "type": "string",
+                "description": "Returns GitLab items assigned to the given username. \"None\" returns unassigned GitLab items. \"Any\" returns GitLab items with an assignee. It is not applicable for epics and vulnerabilities"
+              },
+              "search": {
+                "type": "string",
+                "description": "Search GitLab items against their title and description. It is not applicable for vulnerabilities"
+              },
+              "searchIn": {
+                "type": "string",
+                "description": "Modify the scope of the search attribute. It is not applicable for epics and vulnerabilities",
+                "enum": [
+                  "all",
+                  "title",
+                  "description"
+                ],
+                "default": "all"
+              },
+              "createdAfter": {
+                "type": "string",
+                "format": "date",
+                "description": "Return GitLab items created after the given date. ISO 8601 formatted, e.g. 2016-03-11T03:45:40Z. It is not applicable for vulnerabilities"
+              },
+              "createdBefore": {
+                "type": "string",
+                "format": "date",
+                "description": "Return GitLab items created before the given date. ISO 8601 formatted, e.g. 2016-03-11T03:45:40Z. It is not applicable for vulnerabilities"
+              },
+              "updatedAfter": {
+                "type": "string",
+                "format": "date",
+                "description": "Return GitLab items updated after the given date. ISO 8601 formatted, e.g. 2016-03-11T03:45:40Z. It is not applicable for vulnerabilities"
+              },
+              "updatedBefore": {
+                "type": "string",
+                "format": "date",
+                "description": "Return GitLab items updated before the given date. ISO 8601 formatted, e.g. 2016-03-11T03:45:40Z. It is not applicable for vulnerabilities"
+              },
+              "wip": {
+                "type": "string",
+                "enum": [
+                  "yes",
+                  "no"
+                ],
+                "description": "Filter merge requests against their wip status. \"yes\" to return only WIP merge requests, \"no\" to return non WIP merge requests. Works only with merge requests",
+                "default": "no"
+              },
+              "confidential": {
+                "type": "boolean",
+                "description": "Filter confidential or public issues. Works only with issues",
+                "default": false
+              },
+              "excludeLabels": {
+                "type": "array",
+                "description": "Array of label names, Gitlab item must not have to be returned. Predefined names are case-insensitive. Works only with issues",
+                "items": {
+                  "type": "string"
+                }
+              },
+              "excludeMilestone": {
+                "type": "string",
+                "description": "The milestone title to exclude. Works only with issues"
+              },
+              "excludeAuthor": {
+                "type": "string",
+                "description": "Return GitLab items not created by the given username. Works only with issues"
+              },
+              "excludeAssignee": {
+                "type": "string",
+                "description": "Returns GitLab items not assigned to the given username. Works only with issues"
+              },
+              "excludeSearch": {
+                "type": "string",
+                "description": "Search GitLab items that doesn't have the search key in their title or description. Works only with issues"
+              },
+              "excludeSearchIn": {
+                "type": "string",
+                "description": "Modify the scope of the excludeSearch attribute. Works only with issues",
+                "enum": [
+                  "all",
+                  "title",
+                  "description"
+                ],
+                "default": "all"
+              },
+              "reportTypes": {
+                "type": "array",
+                "description": "Returns vulnerabilities belonging to specified report types. Works only with vulnerabilities",
+                "items": {
+                  "type": "string",
+                  "enum": [
+                    "sast",
+                    "dast",
+                    "dependency_scanning",
+                    "container_scanning"
+                  ]
+                }
+              },
+              "severityLevels": {
+                "type": "array",
+                "description": "Returns vulnerabilities belonging to specified severity levels. Defaults to all. Works only with vulnerabilities",
+                "items": {
+                  "type": "string",
+                  "enum": [
+                    "undefined",
+                    "info",
+                    "unknown",
+                    "low",
+                    "medium",
+                    "high",
+                    "critical"
+                  ]
+                }
+              },
+              "confidenceLevels": {
+                "type": "array",
+                "description": "Returns vulnerabilities belonging to specified confidence levels. Defaults to all. Works only with vulnerabilities",
+                "items": {
+                  "type": "string",
+                  "enum": [
+                    "undefined",
+                    "ignore",
+                    "unknown",
+                    "experimental",
+                    "low",
+                    "medium",
+                    "high",
+                    "confirmed"
+                  ]
+                }
+              },
+              "reviewer": {
+                "type": "string",
+                "description": "Returns GitLab Merge Requests assigned for review to the given username. When set to \"<current_user>\", the extension uses the current user's username."
+              }
+            }
+          },
+          "default": [
+            {
+              "name": "Issues assigned to me",
+              "type": "issues",
+              "scope": "assigned_to_me",
+              "state": "opened",
+              "noItemText": "There is no issue assigned to you."
+            },
+            {
+              "name": "Issues created by me",
+              "type": "issues",
+              "scope": "created_by_me",
+              "state": "opened",
+              "noItemText": "There is no issue created by you."
+            },
+            {
+              "name": "Merge requests assigned to me",
+              "type": "merge_requests",
+              "scope": "assigned_to_me",
+              "state": "opened",
+              "noItemText": "There is no MR assigned to you."
+            },
+            {
+              "name": "Merge requests I'm reviewing",
+              "type": "merge_requests",
+              "reviewer": "<current_user>",
+              "state": "opened",
+              "noItemText": "There is no MR for you to review."
+            },
+            {
+              "name": "Merge requests created by me",
+              "type": "merge_requests",
+              "scope": "created_by_me",
+              "state": "opened",
+              "noItemText": "There is no MR created by you."
+            },
+            {
+              "name": "All project merge requests",
+              "type": "merge_requests",
+              "scope": "all",
+              "state": "opened",
+              "noItemText": "The project has no merge requests"
+            }
+          ],
+          "description": "Custom views in the GitLab panel"
+        },
+        "gitlab.aiAssistedCodeSuggestions.enabled": {
+          "description": "Enable code completion (Beta)",
+          "type": "boolean",
+          "default": false
+        },
+        "gitlab.aiAssistedCodeSuggestions.manualTrigger": {
+          "description": "Allow manual triggering of AI assisted code suggestions. Recommended to leave disabled.",
+          "deprecationMessage": "Only used for testing",
+          "type": "boolean",
+          "default": false
+        }
+      }
+    },
+    "resourceLabelFormatters": [
+      {
+        "scheme": "gitlab-remote",
+        "authority": "*",
+        "formatting": {
+          "label": "${path}",
+          "stripPathStartingSeparator": true,
+          "separator": "/",
+          "workspaceSuffix": "GitLab"
+        }
+      }
+    ]
+  },
+  "extensionDependencies": [
+    "vscode.git"
+  ],
+  "scripts": {
+    "vscode:prepublish": "npm run esbuild -- --minify",
+    "esbuild": "esbuild ./src/extension.js --bundle --outfile=out/extension.js --external:vscode --platform=node --target=node16.13 --sourcemap",
+    "esbuild-watch": "npm run esbuild -- --watch",
+    "compile": "tsc -p ./ && npm run esbuild",
+    "watch-compile": "tsc -p ./ && npm run esbuild-watch",
+    "postinstall": "cd src/webview && npm install && cd ../.. && npm run prettier-package-json",
+    "test-unit": "jest",
+    "test-integration": "npm run compile && node ./out/test/runTest.js",
+    "create-test-workspace": "npm run compile && node ./scripts/create_workspace_for_test_debugging.js",
+    "test": "npm run test-unit && npm run test-integration",
+    "lint": "eslint --ext .js --ext .ts . && prettier --check '**/*.{js,ts,vue,json,md}' && cd src/webview && npm run lint",
+    "clean": "rm -rf out",
+    "prettier-package-json": "prettier --write package.json",
+    "autofix": "npm run clean && eslint --fix . && prettier --write '**/*.{js,ts,vue,json,md}' && cd src/webview && npm run autofix",
+    "publish": "vsce publish",
+    "webview": "cd src/webview && npm run watch",
+    "version": "conventional-changelog -p angular -i CHANGELOG.md -s && git add CHANGELOG.md",
+    "update-ci-variables": "node ./scripts/update_ci_variables.js"
+  },
+  "devDependencies": {
+    "@types/jest": "^29.4.0",
+    "@types/node": "^13.13.52",
+    "@types/request-promise": "^4.1.48",
+    "@types/semver": "^7.3.8",
+    "@types/sinon": "^10.0.13",
+    "@types/source-map-support": "^0.5.4",
+    "@types/temp": "^0.9.0",
+    "@types/vscode": "^1.68.0",
+    "@typescript-eslint/eslint-plugin": "^5.54.0",
+    "@typescript-eslint/parser": "^5.54.0",
+    "conventional-changelog-cli": "^2.1.1",
+    "esbuild": "^0.17.0",
+    "eslint": "^8.35.0",
+    "eslint-config-airbnb-base": "^15.0.0",
+    "eslint-config-prettier": "^8.6.0",
+    "eslint-plugin-import": "^2.27.5",
+    "jest": "^29.4.3",
+    "jest-junit": "^15.0.0",
+    "mocha": "^10.2.0",
+    "mocha-junit-reporter": "^2.2.0",
+    "msw": "^1.0.0",
+    "prettier": "^2.8.4",
+    "simple-git": "^3.0.0",
+    "sinon": "^15.0.1",
+    "ts-jest": "^29.0.5",
+    "typescript": "^4.4.3",
+    "vsce": "^2.0.0",
+    "vscode-test": "^1.6.1"
+  },
+  "dependencies": {
+    "source-map-support": "^0.5.20",
+    "cross-fetch": "^3.1.5",
+    "dayjs": "^1.10.7",
+    "graphql": "^16.6.0",
+    "graphql-request": "^5.1.0",
+    "https-proxy-agent": "^5.0.1",
+    "openai": "^3.0.0",
+    "semver": "^7.3.5",
+    "temp": "^0.9.4",
+    "url": "^0.11.0"
+  }
+}

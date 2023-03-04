@@ -1,0 +1,95 @@
+include:
+  - template: Code-Quality.gitlab-ci.yml
+  - template: Security/SAST.gitlab-ci.yml
+  - template: Security/Dependency-Scanning.gitlab-ci.yml
+  - template: Security/Secret-Detection.gitlab-ci.yml
+  - project: 'gitlab-org/quality/pipeline-common'
+    file:
+      - '/ci/danger-review.yml'
+
+variables:
+  DOCKER_VERSION: "20.10.15"
+  BUNDLE_FROZEN: "true"
+  GO_VERSION: "golang-1.18"
+  DEBIAN_VERSION: "bullseye"
+  RUBY_VERSION: "ruby-2.7"
+
+workflow:
+  rules: &workflow_rules
+    # For merge requests, create a pipeline.
+    - if: '$CI_MERGE_REQUEST_IID'
+    # For `main` branch, create a pipeline (this includes on schedules, pushes, merges, etc.).
+    - if: '$CI_COMMIT_BRANCH == "main"'
+    # For tags, create a pipeline.
+    - if: '$CI_COMMIT_TAG'
+
+default:
+  image: registry.gitlab.com/gitlab-org/gitlab-build-images/debian-${DEBIAN_VERSION}-${RUBY_VERSION}-${GO_VERSION}:git-2.36
+  tags:
+    - gitlab-org
+
+.use-docker-in-docker:
+  image: docker:${DOCKER_VERSION}
+  services:
+    - docker:${DOCKER_VERSION}-dind
+  tags:
+    # See https://gitlab.com/gitlab-com/www-gitlab-com/-/issues/7019 for tag descriptions
+    - gitlab-org-docker
+
+.test:
+  variables:
+    GITALY_CONNECTION_INFO: '{"address":"tcp://gitaly:8075", "storage":"default"}'
+  before_script:
+    # Set up the environment to run integration tests (still written in Ruby)
+    - bundle install
+    - make build
+    - cp config.yml.example config.yml
+    - go version
+    - which go
+  services:
+    - name: registry.gitlab.com/gitlab-org/build/cng/gitaly:master
+      # Disable the hooks so we don't have to stub the GitLab API
+      command: ["bash", "-c", "mkdir -p /home/git/repositories && rm -rf /srv/gitlab-shell/hooks/* && exec /usr/bin/env GITALY_TESTING_NO_GIT_HOOKS=1 /scripts/process-wrapper"]
+      alias: gitaly
+
+tests:
+  extends: .test
+  parallel:
+    matrix:
+      - GO_VERSION: ["golang-1.18", "golang-1.19"]
+      - RUBY_VERSION: ["ruby-2.7", "ruby-3.0"]
+  script:
+    - make verify test
+  after_script:
+    - make coverage
+  coverage: '/\d+.\d+%/'
+
+race:
+  extends: .test
+  script:
+    - make test_golang_race
+
+code_quality:
+  extends: .use-docker-in-docker
+  rules: *workflow_rules
+
+code_navigation:
+  image: sourcegraph/lsif-go:v1.9
+  allow_failure: true
+  script:
+    - lsif-go
+  artifacts:
+    reports:
+      lsif: dump.lsif
+
+# SAST
+semgrep-sast:
+  rules: *workflow_rules
+
+# Dependency Scanning
+gemnasium-dependency_scanning:
+  rules: *workflow_rules
+
+# Secret Detection
+secret_detection:
+  rules: *workflow_rules
